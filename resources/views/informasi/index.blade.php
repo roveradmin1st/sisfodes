@@ -1,0 +1,561 @@
+@extends('layouts.dashboard')
+
+@section('page-title', 'Kelola Informasi Desa')
+
+@section('dashboard-content')
+
+<style>
+    /* ===== SMOOTH SCROLL ===== */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* ===== CARD STYLING ===== */
+    .card {
+        border-radius: 16px !important;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: none !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04) !important;
+    }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.06) !important;
+    }
+    .card-header {
+        border-bottom: none !important;
+        padding: 18px 24px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+    }
+    .card-header .card-title {
+        font-weight: 700;
+        color: #1a472a;
+        font-size: 0.95rem;
+    }
+    .card-body {
+        padding: 24px;
+    }
+
+    /* ===== BUTTON TAMBAH ===== */
+    .btn-tambah {
+        background: linear-gradient(135deg, #1a472a, #2d6a4f);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 2px 10px rgba(26, 71, 42, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    .btn-tambah::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+        transition: left 0.6s ease;
+    }
+    .btn-tambah:hover::before {
+        left: 100%;
+    }
+    .btn-tambah:hover {
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 6px 25px rgba(26, 71, 42, 0.35);
+        color: white;
+    }
+    .btn-tambah:active {
+        transform: scale(0.95);
+    }
+
+    /* ===== FILTER ===== */
+    .filter-select {
+        border-radius: 10px !important;
+        border: 2px solid #e9ecef !important;
+        padding: 6px 12px !important;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        cursor: pointer;
+    }
+    .filter-select:focus {
+        border-color: #1a472a !important;
+        box-shadow: 0 0 0 4px rgba(26, 71, 42, 0.08) !important;
+        background: white;
+    }
+    .btn-filter {
+        border-radius: 10px !important;
+        background: linear-gradient(135deg, #1a472a, #2d6a4f);
+        color: white;
+        border: 2px solid #1a472a;
+        padding: 6px 18px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .btn-filter:hover {
+        background: linear-gradient(135deg, #2d6a4f, #1a472a);
+        color: white;
+        transform: scale(1.02);
+    }
+    .btn-reset-filter {
+        border-radius: 10px !important;
+        background: #dc3545;
+        color: white;
+        border: 2px solid #dc3545;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+        margin-left: 6px;
+    }
+    .btn-reset-filter:hover {
+        background: #b02a37;
+        border-color: #b02a37;
+        color: white;
+        transform: scale(1.02);
+    }
+    .badge-total {
+        background: linear-gradient(135deg, #1a472a, #2d6a4f);
+        color: white;
+        padding: 6px 18px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        box-shadow: 0 2px 10px rgba(26, 71, 42, 0.15);
+    }
+
+    /* ===== TABLE STYLING ===== */
+    .table {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+    }
+    .table thead th {
+        background: linear-gradient(135deg, #1a472a, #2d6a4f);
+        color: white;
+        font-weight: 600;
+        padding: 12px 16px;
+        border-bottom: none;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+    }
+    .table thead th:first-child {
+        border-radius: 10px 0 0 0;
+    }
+    .table thead th:last-child {
+        border-radius: 0 10px 0 0;
+    }
+    .table tbody td {
+        padding: 12px 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    .table tbody tr:hover {
+        background: linear-gradient(90deg, #f8f9fa, #ffffff);
+        transform: scale(1.005);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+    .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .table tbody tr:nth-child(even) {
+        background: #fafbfc;
+    }
+    .table tbody tr:nth-child(even):hover {
+        background: linear-gradient(90deg, #f8f9fa, #ffffff);
+    }
+
+    /* ===== BADGE KATEGORI ===== */
+    .badge-kategori {
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .badge-berita {
+        background: linear-gradient(135deg, #cfe2ff, #9ec5fe);
+        color: #0d6efd;
+    }
+    .badge-pengumuman {
+        background: linear-gradient(135deg, #fff3cd, #ffe69c);
+        color: #856404;
+    }
+    .badge-agenda {
+        background: linear-gradient(135deg, #f8d7da, #f5b8b8);
+        color: #dc3545;
+    }
+    .badge-galeri {
+        background: linear-gradient(135deg, #d1ecf1, #aee7ef);
+        color: #0c5460;
+    }
+
+    /* ===== BADGE STATUS ===== */
+    .badge-status {
+        padding: 4px 14px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    .badge-publish {
+        background: linear-gradient(135deg, #d4edda, #a8e0b0);
+        color: #1a472a;
+    }
+    .badge-draft {
+        background: linear-gradient(135deg, #e9ecef, #dee2e6);
+        color: #495057;
+    }
+
+    /* ===== ACTION BUTTONS ===== */
+    .btn-group .btn {
+        border-radius: 8px !important;
+        padding: 6px 12px;
+        font-size: 0.7rem;
+        transition: all 0.3s ease;
+        margin: 0 2px;
+        border: none;
+        font-weight: 600;
+    }
+    .btn-detail {
+        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        color: #0d47a1;
+    }
+    .btn-detail:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 15px rgba(13, 71, 161, 0.2);
+        color: #0d47a1;
+    }
+    .btn-edit {
+        background: linear-gradient(135deg, #fff3cd, #ffe69c);
+        color: #856404;
+    }
+    .btn-edit:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 15px rgba(133, 100, 4, 0.2);
+        color: #856404;
+    }
+    .btn-hapus {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+    }
+    .btn-hapus:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 15px rgba(114, 28, 36, 0.2);
+        color: #721c24;
+    }
+
+    /* ===== PAGINATION ===== */
+    .pagination {
+        margin-bottom: 0;
+        gap: 4px;
+    }
+    .pagination .page-item .page-link {
+        border: none;
+        border-radius: 8px !important;
+        padding: 8px 14px;
+        color: #1a472a;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        background: transparent;
+        font-size: 0.85rem;
+    }
+    .pagination .page-item .page-link:hover {
+        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        color: #1a472a;
+        transform: scale(1.05);
+    }
+    .pagination .page-item.active .page-link {
+        background: linear-gradient(135deg, #1a472a, #2d6a4f);
+        color: white;
+        box-shadow: 0 4px 15px rgba(26, 71, 42, 0.3);
+    }
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd;
+        background: transparent;
+    }
+
+    /* ===== ALERT ===== */
+    .alert {
+        border-radius: 12px;
+        border: none;
+        padding: 14px 20px;
+        animation: slideDown 0.5s ease forwards;
+    }
+    .alert-success {
+        background: linear-gradient(135deg, #d4edda, #c3e6cb);
+        color: #155724;
+    }
+    .alert-danger {
+        background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+        color: #721c24;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .alert .btn-close {
+        padding: 12px;
+    }
+    .alert ul {
+        padding-left: 20px;
+        margin-bottom: 0;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 16px;
+        }
+        .card-header {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 12px;
+        }
+        .card-header .btn-tambah {
+            width: 100%;
+            text-align: center;
+        }
+        .table thead th {
+            font-size: 0.65rem;
+            padding: 8px 10px;
+        }
+        .table tbody td {
+            padding: 8px 10px;
+            font-size: 0.75rem;
+        }
+        .btn-group .btn {
+            padding: 4px 8px;
+            font-size: 0.6rem;
+        }
+        .row.mb-3 {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .row.mb-3 .col-md-6 {
+            width: 100%;
+        }
+        .row.mb-3 .col-md-6 .d-flex {
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .filter-select {
+            max-width: 100% !important;
+            flex: 1;
+        }
+        .badge-total {
+            font-size: 0.7rem;
+            padding: 4px 14px;
+        }
+        .text-md-end {
+            text-align: left !important;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 12px;
+        }
+        .table thead th {
+            font-size: 0.55rem;
+            padding: 6px 6px;
+        }
+        .table tbody td {
+            padding: 6px 6px;
+            font-size: 0.65rem;
+        }
+        .btn-group .btn {
+            padding: 3px 6px;
+            font-size: 0.55rem;
+        }
+        .pagination .page-item .page-link {
+            padding: 4px 8px;
+            font-size: 0.7rem;
+        }
+        .badge-kategori, .badge-status {
+            font-size: 0.55rem;
+            padding: 2px 8px;
+        }
+        .btn-tambah {
+            font-size: 0.75rem;
+            padding: 6px 14px;
+        }
+    }
+</style>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 fw-bold">
+            <i class="fas fa-info-circle me-2" style="color: #1a472a;"></i>Informasi Desa
+        </h5>
+        <a href="{{ route('informasi.create') }}" class="btn btn-tambah">
+            + Tambah Informasi
+        </a>
+    </div>
+    <div class="card-body">
+        
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <!-- Filter -->
+        <div class="row mb-3 align-items-center">
+            <div class="col-md-6">
+                <form action="{{ route('informasi.index') }}" method="GET" class="d-flex align-items-center">
+                    <select name="kategori" class="form-select filter-select me-2" style="max-width: 200px;">
+                        <option value="">Semua Kategori</option>
+                        <option value="berita" {{ request('kategori') == 'berita' ? 'selected' : '' }}>Berita</option>
+                        <option value="pengumuman" {{ request('kategori') == 'pengumuman' ? 'selected' : '' }}>Pengumuman</option>
+                        <option value="agenda" {{ request('kategori') == 'agenda' ? 'selected' : '' }}>Agenda</option>
+                        <option value="galeri" {{ request('kategori') == 'galeri' ? 'selected' : '' }}>Galeri</option>
+                    </select>
+                    <button type="submit" class="btn btn-filter">Filter</button>
+                    @if(request('kategori'))
+                        <a href="{{ route('informasi.index') }}" class="btn btn-reset-filter">✕</a>
+                    @endif
+                </form>
+            </div>
+            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                <span class="badge badge-total">{{ $informasi->total() }} Total</span>
+            </div>
+        </div>
+
+        <!-- Tabel -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">No</th>
+                        <th>Kategori</th>
+                        <th>Judul</th>
+                        <th>Penulis</th>
+                        <th>Tanggal</th>
+                        <th>Status</th>
+                        <th style="width: 120px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($informasi as $item)
+                    <tr>
+                        <td><span class="fw-bold" style="color: #1a472a;">{{ $loop->iteration + ($informasi->currentPage() - 1) * $informasi->perPage() }}</span></td>
+                        <td>
+                            <span class="badge-kategori badge-{{ $item->kategori == 'berita' ? 'berita' : ($item->kategori == 'pengumuman' ? 'pengumuman' : ($item->kategori == 'agenda' ? 'agenda' : 'galeri')) }}">
+                                {{ ucfirst($item->kategori) }}
+                            </span>
+                        </td>
+                        <td><strong style="color: #1a472a;">{{ Str::limit($item->judul, 40) }}</strong></td>
+                        <td>{{ $item->penulis }}</td>
+                        <td>{{ $item->tanggal_posting->format('d/m/Y') }}</td>
+                        <td>
+                            <span class="badge-status badge-{{ $item->status_publish == 'publish' ? 'publish' : 'draft' }}">
+                                {{ ucfirst($item->status_publish) }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ route('informasi.show', $item->id_informasi) }}" 
+                                   class="btn btn-detail">Detail</a>
+                                <a href="{{ route('informasi.edit', $item->id_informasi) }}" 
+                                   class="btn btn-edit">Edit</a>
+                                <button type="button" 
+                                        class="btn btn-hapus btn-delete" 
+                                        data-id="{{ $item->id_informasi }}"
+                                        data-judul="{{ $item->judul }}">Hapus</button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fas fa-inbox" style="font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.3;"></i>
+                            Belum ada informasi
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="d-flex justify-content-end mt-3">
+            {{ $informasi->links() }}
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    document.querySelectorAll('.btn-delete').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const id = this.dataset.id;
+            const judul = this.dataset.judul;
+            
+            Swal.fire({
+                title: 'Hapus Informasi?',
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-file-alt" style="font-size: 3rem; color: #dc3545; margin-bottom: 15px; display: block;"></i>
+                        <p style="font-size: 1rem; margin-bottom: 5px;">Apakah Anda yakin ingin menghapus</p>
+                        <p style="font-size: 1.1rem; font-weight: 700; color: #1a472a;">"${judul}"</p>
+                        <p class="text-muted small">Data yang dihapus tidak dapat dikembalikan!</p>
+                    </div>
+                `,
+                icon: null,
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                showCloseButton: true,
+                background: 'white',
+                backdrop: 'rgba(0,0,0,0.4)',
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-danger px-4 py-2',
+                    cancelButton: 'btn btn-secondary px-4 py-2',
+                    htmlContainer: 'text-center'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Dihapus!',
+                        text: `Informasi "${judul}" telah dihapus.`,
+                        timer: 1500,
+                        showConfirmButton: false,
+                        position: 'center',
+                        backdrop: 'rgba(0,0,0,0.2)',
+                        customClass: {
+                            popup: 'rounded-4',
+                            title: 'fw-bold text-success'
+                        }
+                    }).then(() => {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = `{{ route('informasi.index') }}/${id}`;
+                        form.innerHTML = `
+                            @csrf
+                            @method('DELETE')
+                        `;
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                }
+            });
+        });
+    });
+</script>
+@endpush
+
+@endsection
