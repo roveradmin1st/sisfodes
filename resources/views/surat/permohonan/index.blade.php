@@ -552,15 +552,19 @@
                         </td>
                         <td>
                             @if($item->status_permohonan == 'selesai')
-                                <span class="badge-verif badge-verif-lengkap">
-                                    Dokumen lengkap
+                                <span class="badge-verif badge-verif-lengkap" style="white-space: nowrap;">
+                                    Selesai
                                 </span>
                             @elseif($item->status_permohonan == 'ditolak')
-                                <span class="badge-verif badge-verif-ditolak">
+                                <span class="badge-verif badge-verif-ditolak" style="white-space: nowrap;">
                                     Ditolak
                                 </span>
+                            @elseif($item->status_permohonan == 'diproses')
+                                <span class="badge-verif badge-diproses" style="white-space: nowrap;">
+                                    Diproses
+                                </span>
                             @else
-                                <span class="badge-verif badge-verif-menunggu">
+                                <span class="badge-verif badge-verif-menunggu" style="white-space: nowrap;">
                                     Menunggu verifikasi
                                 </span>
                             @endif
@@ -646,7 +650,8 @@
     <div class="card-body">
         
         @php
-            $suratKades = $permohonan->where('status_permohonan', 'selesai');
+            // Menampilkan surat yang sedang diproses (butuh upload) dan selesai
+            $suratKades = $permohonan->whereIn('status_permohonan', ['diproses', 'selesai']);
         @endphp
 
         <div class="table-responsive">
@@ -766,8 +771,8 @@
                     form.action = '/surat/permohonan/' + id + '/verifikasi';
                     form.innerHTML = `
                         @csrf
-                        <input type="hidden" name="status" value="selesai">
-                        <input type="hidden" name="catatan" value="Disetujui oleh Kepala Desa">
+                        <input type="hidden" name="status" value="diproses">
+                        <input type="hidden" name="catatan" value="Berkas persyaratan valid, surat sedang diproses.">
                     `;
                     document.body.appendChild(form);
                     form.submit();

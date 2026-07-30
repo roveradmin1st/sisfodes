@@ -560,7 +560,7 @@
                 Menampilkan {{ $penerima->firstItem() ?? 0 }} - {{ $penerima->lastItem() ?? 0 }} 
                 dari {{ $penerima->total() }} data
             </span>
-            {{ $penerima->links() }}
+            {{ $penerima->appends(request()->query())->links() }}
         </div>
 
         {{-- <!-- Tombol Aksi -->

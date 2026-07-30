@@ -93,6 +93,11 @@ class SuratController extends Controller
     {
         $jenisSurat = JenisSurat::findOrFail($id);
 
+        if (\App\Models\PermohonanSurat::where('id_jenis_surat', $id)->exists()) {
+            return redirect()->route('surat.jenis.index')
+                ->with('error', 'Jenis surat gagal dihapus karena sudah digunakan dalam pengajuan surat oleh warga.');
+        }
+
         if ($jenisSurat->template_surat) {
             Storage::disk('public')->delete($jenisSurat->template_surat);
         }

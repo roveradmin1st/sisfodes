@@ -41,18 +41,72 @@ class PendudukController extends Controller
                 }
             });
         }
+          $cacheTtl = 60 * 24; // Cache for 24 hours (or until cleared)
+        
+        $totalPenduduk = \Illuminate\Support\Facades\Cache::remember('stat_total_penduduk', $cacheTtl, function() {
+            return Penduduk::count();
+        });
 
-        // 1. Gender Data
+        $totalLaki = \Illuminate\Support\Facades\Cache::remember('stat_total_laki', $cacheTtl, function() {
+            return Penduduk::where('jenis_kelamin', 'L')->count();
+        });
+
+        $totalPerempuan = \Illuminate\Support\Facades\Cache::remember('stat_total_perempuan', $cacheTtl, function() {
+            return Penduduk::where('jenis_kelamin', 'P')->count();
+        });
+        
         $genderData = [
-            'Laki-laki' => (clone $query)->where('jenis_kelamin', 'L')->count(),
-            'Perempuan' => (clone $query)->where('jenis_kelamin', 'P')->count(),
+            'Laki-laki' => $totalLaki,
+            'Perempuan' => $totalPerempuan,
         ];
 
+        $allDusunRaw = \Illuminate\Support\Facades\Cache::remember('stat_all_dusun', $cacheTtl, function() {
+            return Penduduk::select('dusun')->distinct()->pluck('dusun')->toArray();
+        });
+
+        $dusunDataRaw = \Illuminate\Support\Facades\Cache::remember('stat_dusun_data', $cacheTtl, function() {
+            return Penduduk::selectRaw('UPPER(TRIM(dusun)) as raw_dusun, count(*) as count')
+                ->groupBy('raw_dusun')
+                ->pluck('count', 'raw_dusun')
+                ->toArray();
+        });
+
+        $agamaData = \Illuminate\Support\Facades\Cache::remember('stat_agama_data', $cacheTtl, function() {
+            return Penduduk::selectRaw('agama, count(*) as count')
+                ->groupBy('agama')
+                ->pluck('count', 'agama')
+                ->toArray();
+        });
+
+        $pekerjaanData = \Illuminate\Support\Facades\Cache::remember('stat_pekerjaan_data', $cacheTtl, function() {
+            return Penduduk::selectRaw('pekerjaan, count(*) as count')
+                ->groupBy('pekerjaan')
+                ->pluck('count', 'pekerjaan')
+                ->toArray();
+        });
+
+        $pendidikanData = \Illuminate\Support\Facades\Cache::remember('stat_pendidikan_data', $cacheTtl, function() {
+            return Penduduk::selectRaw('pendidikan, count(*) as count')
+                ->groupBy('pendidikan')
+                ->pluck('count', 'pendidikan')
+                ->toArray();
+        });
+
+        $statusKawinData = \Illuminate\Support\Facades\Cache::remember('stat_kawin_data', $cacheTtl, function() {
+            return Penduduk::selectRaw('status_perkawinan, count(*) as count')
+                ->groupBy('status_perkawinan')
+                ->pluck('count', 'status_perkawinan')
+                ->toArray();
+        });
+
+        $statusPendudukData = \Illuminate\Support\Facades\Cache::remember('stat_status_data', $cacheTtl, function() {
+            return Penduduk::selectRaw('status_penduduk, count(*) as count')
+                ->groupBy('status_penduduk')
+                ->pluck('count', 'status_penduduk')
+                ->toArray();
+        });
+
         // 2. Dusun Data
-        $dusunDataRaw = (clone $query)->selectRaw('UPPER(TRIM(dusun)) as raw_dusun, count(*) as count')
-            ->groupBy('raw_dusun')
-            ->pluck('count', 'raw_dusun')
-            ->toArray();
         $dusunData = [];
         foreach($dusunDataRaw as $k => $v) {
             $cleanName = strtoupper(trim($k));
@@ -75,17 +129,7 @@ class PendudukController extends Controller
         });
 
         // 3. Religion Data
-        $agamaData = (clone $query)->selectRaw('agama, count(*) as count')
-            ->groupBy('agama')
-            ->pluck('count', 'agama')
-            ->toArray();
-
         // 4. Pendidikan Data
-        $pendidikanData = (clone $query)->selectRaw('pendidikan, count(*) as count')
-            ->groupBy('pendidikan')
-            ->pluck('count', 'pendidikan')
-            ->toArray();
-
         // 5. Pekerjaan Data
         $pekerjaanDataRaw = (clone $query)->selectRaw('pekerjaan, count(*) as count')
             ->groupBy('pekerjaan')
@@ -200,10 +244,17 @@ class PendudukController extends Controller
     public function destroy($id)
     {
         $penduduk = Penduduk::findOrFail($id);
+        
+        // Hapus akun user yang terkait dengan NIK ini jika ada
+        $user = \App\Models\User::where('nik', $penduduk->nik)->first();
+        if ($user) {
+            $user->delete();
+        }
+
         $penduduk->delete();
 
         return redirect()->route('penduduk.index')
-            ->with('success', 'Data penduduk berhasil dihapus.');
+            ->with('success', 'Data penduduk beserta akun login (jika ada) berhasil dihapus.');
     }
 
     public function search(Request $request)
