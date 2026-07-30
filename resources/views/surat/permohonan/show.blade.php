@@ -379,7 +379,11 @@
                     @if(in_array(Auth::user()->role, ['kaur_umum', 'kepala_desa']) && in_array($permohonan->status_permohonan, ['diproses', 'selesai']))
                         <div class="mt-2">
                             <a href="{{ route('surat.permohonan.cetak', $permohonan->id_permohonan) }}" target="_blank" class="btn-action" style="background: linear-gradient(135deg, #0dcaf0, #31d2f2); color: white; box-shadow: 0 4px 15px rgba(13, 202, 240, 0.2);">
-                                <i class="fas fa-file-pdf"></i> Cetak Draft PDF (Untuk di TTD)
+                                @if($permohonan->jenisSurat && $permohonan->jenisSurat->template_surat && str_ends_with(strtolower($permohonan->jenisSurat->template_surat), '.docx'))
+                                    <i class="fas fa-file-word"></i> Download Draft Surat (Word)
+                                @else
+                                    <i class="fas fa-file-pdf"></i> Cetak Draft PDF (Default)
+                                @endif
                             </a>
                         </div>
                     @endif

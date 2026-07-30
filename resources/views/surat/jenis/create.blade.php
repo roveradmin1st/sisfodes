@@ -315,13 +315,19 @@
                 <!-- FORMAT SURAT + UPLOAD TEMPLATE            -->
                 <!-- ========================================== -->
                 <div class="col-12">
-                    <label class="form-label">Format Surat (Template)</label>
+                    <label class="form-label">Format Surat (Template Word .docx)</label>
+                    <div class="alert alert-info py-2 mb-2" style="font-size: 0.85rem;">
+                        <strong><i class="fas fa-info-circle"></i> Cara Pakai Template Otomatis:</strong><br>
+                        Buat surat di Microsoft Word (.docx), lalu ketik kode variabel berikut di posisi data yang Anda inginkan:<br>
+                        <code>${nama}</code>, <code>${nik}</code>, <code>${no_kk}</code>, <code>${tempat_lahir}</code>, <code>${tanggal_lahir}</code>, <code>${jenis_kelamin}</code>, <code>${agama}</code>, <code>${pekerjaan}</code>, <code>${status_perkawinan}</code>, <code>${alamat}</code>, <code>${keperluan}</code>, <code>${tanggal_cetak}</code>.
+                        <br>Sistem akan otomatis mengganti kode tersebut dengan data asli warga saat dicetak.
+                    </div>
                     <div class="upload-box">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-8">
                                 <input type="file" class="form-control file-input @error('template_surat') is-invalid @enderror" 
-                                       name="template_surat" accept=".doc,.docx,.pdf">
-                                <small class="text-muted">Upload File Template Surat (.docx / .pdf)</small>
+                                       name="template_surat" accept=".docx">
+                                <small class="text-muted">Upload File Template Surat HANYA berformat (.docx)</small>
                             </div>
                             <div class="col-md-4 text-md-end">
                                 <span class="badge-max">Max 2MB</span>
