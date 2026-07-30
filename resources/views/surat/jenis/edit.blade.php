@@ -271,18 +271,8 @@
                 <!-- ========================================== -->
                 <div class="col-12">
                     <label class="form-label">Nama Jenis Surat <span class="text-danger">*</span></label>
-                    <select class="form-select @error('nama_surat') is-invalid @enderror" name="nama_surat" required>
-                        <option value="">Pilih Jenis Surat</option>
-                        <option value="Surat Keterangan Domisili" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Keterangan Domisili' ? 'selected' : '' }}>Surat Keterangan Domisili</option>
-                        <option value="Surat Keterangan Tidak Mampu" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Keterangan Tidak Mampu' ? 'selected' : '' }}>Surat Keterangan Tidak Mampu</option>
-                        <option value="Surat Keterangan Usaha" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Keterangan Usaha' ? 'selected' : '' }}>Surat Keterangan Usaha</option>
-                        <option value="Surat Keterangan Belum Menikah" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Keterangan Belum Menikah' ? 'selected' : '' }}>Surat Keterangan Belum Menikah</option>
-                        <option value="Surat Keterangan Kematian" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Keterangan Kematian' ? 'selected' : '' }}>Surat Keterangan Kematian</option>
-                        <option value="Surat Keterangan Akte Nikah" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Keterangan Akte Nikah' ? 'selected' : '' }}>Surat Keterangan Akte Nikah</option>
-                        <option value="Surat Keterangan Belum Punya Rumah" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Keterangan Belum Punya Rumah' ? 'selected' : '' }}>Surat Keterangan Belum Punya Rumah</option>
-                        <option value="Surat Mandah" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Surat Mandah' ? 'selected' : '' }}>Surat Mandah</option>
-                        <option value="Lainnya" {{ old('nama_surat', $jenisSurat->nama_surat) == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
-                    </select>
+                    <input type="text" class="form-control @error('nama_surat') is-invalid @enderror" 
+                           name="nama_surat" value="{{ old('nama_surat', $jenisSurat->nama_surat) }}" placeholder="Ketik nama jenis surat" required>
                     @error('nama_surat')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
