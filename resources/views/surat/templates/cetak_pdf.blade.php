@@ -121,17 +121,17 @@
             <tr>
                 <td style="width: 30%;">Nama Lengkap</td>
                 <td style="width: 3%;">:</td>
-                <td style="width: 67%;"><strong>{{ strtoupper($permohonan->penduduk->nama_lengkap ?? '-') }}</strong></td>
+                <td style="width: 67%;"><strong>{{ strtoupper($permohonan->penduduk->nama ?? '-') }}</strong></td>
             </tr>
             <tr>
                 <td>NIK / No. KTP</td>
                 <td>:</td>
-                <td>{{ $permohonan->penduduk->nik ?? '-' }}</td>
+                <td>{{ ltrim($permohonan->penduduk->nik ?? '-', "'") }}</td>
             </tr>
             <tr>
                 <td>No. Kartu Keluarga</td>
                 <td>:</td>
-                <td>{{ $permohonan->penduduk->no_kk ?? '-' }}</td>
+                <td>{{ ltrim($permohonan->penduduk->no_kk ?? '-', "'") }}</td>
             </tr>
             <tr>
                 <td>Tempat / Tgl. Lahir</td>

@@ -650,7 +650,7 @@
                 Menampilkan {{ $penduduk->firstItem() ?? 0 }} - {{ $penduduk->lastItem() ?? 0 }} 
                 dari {{ $penduduk->total() }} data
             </span>
-            {{ $penduduk->links() }}
+            {{ $penduduk->appends(request()->query())->links() }}
         </div>
     </div>
 </div>

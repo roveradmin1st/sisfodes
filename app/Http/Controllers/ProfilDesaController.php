@@ -9,16 +9,35 @@ use Illuminate\Support\Facades\Validator;
 
 class ProfilDesaController extends Controller
 {
-    public function index()
+    private function getOrCreateProfil()
     {
         $profil = ProfilDesa::first();
+        if (!$profil) {
+            $profil = ProfilDesa::create([
+                'nama_desa' => 'Desa Sidomulyo',
+                'alamat' => 'Jl. Desa Sidomulyo No. 1',
+                'kecamatan' => 'Kecamatan Contoh',
+                'kabupaten' => 'Kabupaten Contoh',
+                'provinsi' => 'Provinsi Contoh',
+                'luas_wilayah' => '0 Ha',
+                'visi' => 'Belum ada visi',
+                'misi' => 'Belum ada misi',
+                'sejarah' => 'Belum ada data sejarah',
+            ]);
+        }
+        return $profil;
+    }
+
+    public function index()
+    {
+        $profil = $this->getOrCreateProfil();
 
         return view('profil.index', compact('profil'));
     }
 
     public function edit()
     {
-        $profil = ProfilDesa::first();
+        $profil = $this->getOrCreateProfil();
 
         return view('profil.edit', compact('profil'));
     }
@@ -42,10 +61,7 @@ class ProfilDesaController extends Controller
 
     public function update(Request $request)
     {
-        $profil = ProfilDesa::first();
-        if (! $profil) {
-            return redirect()->route('profil.index')->with('error', 'Data tidak ditemukan!');
-        }
+        $profil = $this->getOrCreateProfil();
 
         $validator = Validator::make($request->all(), [
             'nama_desa' => 'nullable|string|max:100',
@@ -83,11 +99,7 @@ class ProfilDesaController extends Controller
             'logo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $profil = ProfilDesa::first();
-
-        if (! $profil) {
-            return redirect()->route('profil.index')->with('error', 'Data profil tidak ditemukan!');
-        }
+        $profil = $this->getOrCreateProfil();
 
         if ($request->hasFile('logo')) {
             if ($profil->logo && Storage::disk('public')->exists($profil->logo)) {
@@ -110,11 +122,7 @@ class ProfilDesaController extends Controller
             'map' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $profil = ProfilDesa::first();
-
-        if (! $profil) {
-            return redirect()->route('profil.index')->with('error', 'Data profil tidak ditemukan!');
-        }
+        $profil = $this->getOrCreateProfil();
 
         if ($request->hasFile('map')) {
             if ($profil->map && Storage::disk('public')->exists($profil->map)) {
@@ -133,7 +141,7 @@ class ProfilDesaController extends Controller
 
     public function publicIndex()
     {
-        $profil = ProfilDesa::first();
+        $profil = $this->getOrCreateProfil();
 
         return view('public.profil', compact('profil'));
     }

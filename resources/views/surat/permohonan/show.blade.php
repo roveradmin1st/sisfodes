@@ -372,10 +372,21 @@
                 <h6 class="section-title">Surat Selesai</h6>
                 @if($permohonan->file_surat_scan)
                     <a href="{{ asset('storage/' . $permohonan->file_surat_scan) }}" target="_blank" class="btn-action btn-surat">
-                        Download Surat
+                        Lihat Surat (Sudah TTD)
                     </a>
                 @else
-                    <span class="text-muted">Surat belum selesai</span>
+                    <span class="text-muted">Surat belum diupload</span>
+                    @if(in_array(Auth::user()->role, ['kaur_umum', 'kepala_desa']) && in_array($permohonan->status_permohonan, ['diproses', 'selesai']))
+                        <div class="mt-2">
+                            <a href="{{ route('surat.permohonan.cetak', $permohonan->id_permohonan) }}" target="_blank" class="btn-action" style="background: linear-gradient(135deg, #0dcaf0, #31d2f2); color: white; box-shadow: 0 4px 15px rgba(13, 202, 240, 0.2);">
+                                @if($permohonan->jenisSurat && $permohonan->jenisSurat->template_surat && str_ends_with(strtolower($permohonan->jenisSurat->template_surat), '.docx'))
+                                    <i class="fas fa-file-word"></i> Download Draft Surat (Word)
+                                @else
+                                    <i class="fas fa-file-pdf"></i> Cetak Draft PDF (Default)
+                                @endif
+                            </a>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
@@ -410,7 +421,7 @@
                     </form>
                 @endif
                 
-                @if(Auth::user()->role == 'kaur_umum' && $permohonan->status_permohonan == 'selesai')
+                @if(Auth::user()->role == 'kaur_umum' && in_array($permohonan->status_permohonan, ['diproses', 'selesai']))
                     <form method="POST" action="{{ route('surat.permohonan.upload-surat', $permohonan->id_permohonan) }}" class="row g-3 mt-2" enctype="multipart/form-data">
                         @csrf
                         <div class="col-md-7">

@@ -304,18 +304,8 @@
                 <!-- ========================================== -->
                 <div class="col-12">
                     <label class="form-label">Nama Jenis Surat <span class="text-danger">*</span></label>
-                    <select class="form-select @error('nama_surat') is-invalid @enderror" name="nama_surat" required>
-                        <option value="">Pilih Jenis Surat</option>
-                        <option value="Surat Keterangan Domisili" {{ old('nama_surat') == 'Surat Keterangan Domisili' ? 'selected' : '' }}>Surat Keterangan Domisili</option>
-                        <option value="Surat Keterangan Tidak Mampu" {{ old('nama_surat') == 'Surat Keterangan Tidak Mampu' ? 'selected' : '' }}>Surat Keterangan Tidak Mampu</option>
-                        <option value="Surat Keterangan Usaha" {{ old('nama_surat') == 'Surat Keterangan Usaha' ? 'selected' : '' }}>Surat Keterangan Usaha</option>
-                        <option value="Surat Keterangan Belum Menikah" {{ old('nama_surat') == 'Surat Keterangan Belum Menikah' ? 'selected' : '' }}>Surat Keterangan Belum Menikah</option>
-                        <option value="Surat Keterangan Kematian" {{ old('nama_surat') == 'Surat Keterangan Kematian' ? 'selected' : '' }}>Surat Keterangan Kematian</option>
-                        <option value="Surat Keterangan Akte Nikah" {{ old('nama_surat') == 'Surat Keterangan Akte Nikah' ? 'selected' : '' }}>Surat Keterangan Akte Nikah</option>
-                        <option value="Surat Keterangan Belum Punya Rumah" {{ old('nama_surat') == 'Surat Keterangan Belum Punya Rumah' ? 'selected' : '' }}>Surat Keterangan Belum Punya Rumah</option>
-                        <option value="Surat Mandah" {{ old('nama_surat') == 'Surat Mandah' ? 'selected' : '' }}>Surat Mandah</option>
-                        <option value="Lainnya" {{ old('nama_surat') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
-                    </select>
+                    <input type="text" class="form-control @error('nama_surat') is-invalid @enderror" 
+                           name="nama_surat" value="{{ old('nama_surat') }}" placeholder="Ketik nama jenis surat" required>
                     @error('nama_surat')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -325,13 +315,19 @@
                 <!-- FORMAT SURAT + UPLOAD TEMPLATE            -->
                 <!-- ========================================== -->
                 <div class="col-12">
-                    <label class="form-label">Format Surat (Template)</label>
+                    <label class="form-label">Format Surat (Template Word .docx)</label>
+                    <div class="alert alert-info py-2 mb-2" style="font-size: 0.85rem;">
+                        <strong><i class="fas fa-info-circle"></i> Cara Pakai Template Otomatis:</strong><br>
+                        Buat surat di Microsoft Word (.docx), lalu ketik kode variabel berikut di posisi data yang Anda inginkan:<br>
+                        <code>${nama}</code>, <code>${nik}</code>, <code>${no_kk}</code>, <code>${tempat_lahir}</code>, <code>${tanggal_lahir}</code>, <code>${jenis_kelamin}</code>, <code>${agama}</code>, <code>${pekerjaan}</code>, <code>${status_perkawinan}</code>, <code>${alamat}</code>, <code>${keperluan}</code>, <code>${tanggal_cetak}</code>.
+                        <br>Sistem akan otomatis mengganti kode tersebut dengan data asli warga saat dicetak.
+                    </div>
                     <div class="upload-box">
                         <div class="row g-3 align-items-center">
                             <div class="col-md-8">
                                 <input type="file" class="form-control file-input @error('template_surat') is-invalid @enderror" 
-                                       name="template_surat" accept=".doc,.docx,.pdf">
-                                <small class="text-muted">Upload File Template Surat (.docx / .pdf)</small>
+                                       name="template_surat" accept=".docx">
+                                <small class="text-muted">Upload File Template Surat HANYA berformat (.docx)</small>
                             </div>
                             <div class="col-md-4 text-md-end">
                                 <span class="badge-max">Max 2MB</span>
