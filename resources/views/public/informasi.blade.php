@@ -45,9 +45,9 @@
                                     <small class="text-muted" style="font-size: 0.75rem;">
                                         {{ $item->tanggal_posting->format('d M Y') }}
                                     </small>
-                                    <a href="#" class="btn btn-sm btn-outline-secondary">
-                                        Baca
-                                    </a>
+                                     <a href="{{ route('public.informasi.show', $item->id_informasi) }}" class="btn btn-sm btn-outline-success rounded-pill px-3">
+                                        Baca <i class="fas fa-arrow-right ms-1" style="font-size: 0.7rem;"></i>
+                                     </a>
                                 </div>
                             </div>
                         </div>

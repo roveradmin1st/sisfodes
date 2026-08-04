@@ -9,8 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-dark: #072a1e;
-            --primary-light: #e6f4ea;
+            --primary-dark: #0d2b5e;
+            --primary-light: #e8f1fd;
+            --primary-gradient: linear-gradient(135deg, #0d2b5e, #1a4a7a);
             --text-dark: #1f2937;
             --text-muted: #6b7280;
         }
@@ -21,7 +22,7 @@
             padding: 0;
             box-sizing: border-box;
             padding-top: 80px;
-            background: #f9fbf9;
+            background: #f8fafc;
             color: var(--text-dark);
         }
 
@@ -36,7 +37,7 @@
             right: 0;
             z-index: 9998;
             width: 100%;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(13, 43, 94, 0.08);
         }
         
         .navbar-custom .navbar-brand {
@@ -81,7 +82,7 @@
         }
         
         .navbar-custom .btn-login {
-            background: var(--primary-dark);
+            background: linear-gradient(135deg, #0d2b5e, #1a4a7a);
             color: #fff !important;
             padding: 8px 25px;
             border-radius: 50px;
@@ -89,17 +90,19 @@
             font-size: 0.9rem;
             margin-left: 15px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(13, 43, 94, 0.2);
         }
         
         .navbar-custom .btn-login:hover {
-            background: #1a472a;
-            box-shadow: 0 4px 12px rgba(7, 42, 30, 0.2);
+            background: linear-gradient(135deg, #0a2148, #0d2b5e);
+            box-shadow: 0 6px 20px rgba(13, 43, 94, 0.35);
             color: #fff !important;
+            transform: translateY(-1px);
         }
 
         /* ===== FOOTER ===== */
         .footer {
-            background: var(--primary-dark);
+            background: linear-gradient(135deg, #0a2148, #0d2b5e);
             color: #d1d5db;
             padding: 60px 0 30px 0;
             margin-top: 60px;
@@ -150,6 +153,7 @@
                  onerror="this.style.display='none'">
             <div class="brand-text">
                 <span class="main">Desa Sidomulyo</span>
+                <small class="sub text-muted" style="font-size: 0.72rem; font-weight: 500; display: block; margin-top: -2px;">Kabupaten Deli Serdang</small>
             </div>
         </a>
         <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
@@ -167,15 +171,18 @@
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('public.perangkat') ? 'active' : '' }}" href="{{ route('public.perangkat') }}">Perangkat Desa</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('public.umkm*') ? 'active' : '' }}" href="{{ route('public.umkm') }}">UMKM Desa</a>
+                </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {{ request()->routeIs(['public.informasi', 'public.bantuan', 'public.penduduk', 'public.apbdesa']) ? 'active' : '' }}" href="#" id="informasiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle {{ request()->routeIs(['public.informasi', 'public.bantuan', 'public.apbdesa']) ? 'active' : '' }}" href="#" id="informasiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Informasi Desa
                     </a>
                     <ul class="dropdown-menu border-0 shadow" aria-labelledby="informasiDropdown">
                         <li><a class="dropdown-item" href="{{ route('public.informasi') }}">Berita</a></li>
                         <li><a class="dropdown-item" href="{{ route('public.bantuan') }}">Info Bantuan</a></li>
-                        <li><a class="dropdown-item" href="{{ route('public.penduduk') ?? '#' }}">Data Penduduk</a></li>
                         <li><a class="dropdown-item" href="{{ route('public.apbdesa') }}">Transparansi APBDes</a></li>
+                        <li><a class="dropdown-item" href="{{ route('public.umkm') }}">Produk UMKM Desa</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

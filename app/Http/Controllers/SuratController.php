@@ -236,45 +236,25 @@ class SuratController extends Controller
     public function permohonanCetak($id)
     {
         $permohonan = PermohonanSurat::with(['penduduk', 'jenisSurat'])->findOrFail($id);
+        $user = Auth::user();
 
-        $templatePath = $permohonan->jenisSurat->template_surat;
-        
-        // Cek apakah template diupload dan formatnya DOCX
-        if ($templatePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($templatePath) && str_ends_with(strtolower($templatePath), '.docx')) {
-            $path = storage_path('app/public/' . $templatePath);
-            
-            try {
-                $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($path);
-                
-                // Variabel yang bisa diketik di template Word: ${nama}, ${nik}, dll
-                $templateProcessor->setValue('nama', strtoupper($permohonan->penduduk->nama ?? '-'));
-                $templateProcessor->setValue('nik', ltrim($permohonan->penduduk->nik ?? '-', "'"));
-                $templateProcessor->setValue('no_kk', ltrim($permohonan->penduduk->no_kk ?? '-', "'"));
-                $templateProcessor->setValue('tempat_lahir', $permohonan->penduduk->tempat_lahir ?? '-');
-                
-                $tglLahir = $permohonan->penduduk->tanggal_lahir ? \Carbon\Carbon::parse($permohonan->penduduk->tanggal_lahir)->translatedFormat('d F Y') : '-';
-                $templateProcessor->setValue('tanggal_lahir', $tglLahir);
-                
-                $templateProcessor->setValue('jenis_kelamin', ($permohonan->penduduk->jenis_kelamin ?? 'L') == 'L' ? 'Laki-Laki' : 'Perempuan');
-                $templateProcessor->setValue('agama', $permohonan->penduduk->agama ?? '-');
-                $templateProcessor->setValue('pekerjaan', $permohonan->penduduk->pekerjaan ?? '-');
-                $templateProcessor->setValue('status_perkawinan', $permohonan->penduduk->status_perkawinan ?? '-');
-                $templateProcessor->setValue('alamat', $permohonan->penduduk->alamat ?? '-');
-                $templateProcessor->setValue('keperluan', $permohonan->keperluan ?? '-');
-                $templateProcessor->setValue('tanggal_cetak', \Carbon\Carbon::now()->translatedFormat('d F Y'));
-                
-                $filename = 'Surat_' . str_replace(' ', '_', $permohonan->jenisSurat->nama_surat) . '_' . ($permohonan->penduduk->nik ?? 'Warga') . '.docx';
-                
-                $tempFile = tempnam(sys_get_temp_dir(), 'word_');
-                $templateProcessor->saveAs($tempFile);
-                
-                return response()->download($tempFile, $filename)->deleteFileAfterSend(true);
-            } catch (\Exception $e) {
-                return back()->with('error', 'Gagal memproses template Word: Pastikan file template berformat DOCX valid. ' . $e->getMessage());
+        // Pengecekan akses: Penduduk hanya bisa melihat / mencetak surat miliknya sendiri
+        if ($user->role == 'penduduk') {
+            $penduduk = Penduduk::where('nik', $user->nik)->first();
+            if (!$penduduk || $permohonan->id_penduduk != $penduduk->id_penduduk) {
+                abort(403, 'Anda tidak memiliki hak akses untuk melihat atau mencetak surat ini.');
             }
         }
 
-        // Fallback jika tidak ada template Word
+        $templatePath = $permohonan->jenisSurat->template_surat ?? null;
+
+        // Cek jika template diupload berformat PDF
+        if ($templatePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($templatePath) && str_ends_with(strtolower($templatePath), '.pdf')) {
+            $path = storage_path('app/public/' . $templatePath);
+            return response()->file($path);
+        }
+
+        // Cetak via DomPDF Blade View resmi desa (terstruktur, rapi, presisi & proporsional 1 halaman A4)
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('surat.templates.cetak_pdf', compact('permohonan'));
         $pdf->setPaper('A4', 'portrait');
 

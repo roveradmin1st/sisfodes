@@ -262,4 +262,17 @@ class InformasiDesaController extends Controller
 
         return view('public.informasi', compact('berita', 'pengumuman', 'agenda', 'galeri'));
     }
+
+    public function publicShow($id)
+    {
+        $informasi = InformasiDesa::where('status_publish', 'publish')->findOrFail($id);
+
+        $beritaTerkait = InformasiDesa::where('status_publish', 'publish')
+            ->where('id_informasi', '!=', $id)
+            ->latest()
+            ->take(4)
+            ->get();
+
+        return view('public.informasi-detail', compact('informasi', 'beritaTerkait'));
+    }
 }

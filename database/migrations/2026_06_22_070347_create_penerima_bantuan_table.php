@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('program_bantuan', 100);
             $table->string('keterangan', 150)->nullable();
             $table->date('tanggal_terima');
-            $table->enum('status', ['diterima', 'dialihkan'])->default('diterima');
+            $table->enum('status', ['diterima', 'dialihkan', 'diproses'])->default('diterima');
             $table->timestamps();
         });
     }

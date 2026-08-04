@@ -26,9 +26,12 @@ Route::get('/', function () {
 Route::get('/profil-desa', [ProfilDesaController::class, 'publicIndex'])->name('public.profil');
 Route::get('/perangkat-desa', [PerangkatDesaController::class, 'publicIndex'])->name('public.perangkat');
 Route::get('/informasi-desa', [InformasiDesaController::class, 'publicIndex'])->name('public.informasi');
+Route::get('/informasi-desa/{id}', [InformasiDesaController::class, 'publicShow'])->name('public.informasi.show');
 Route::get('/bantuan-desa', [BantuanController::class, 'publicIndex'])->name('public.bantuan');
 Route::get('/data-penduduk', [PendudukController::class, 'publicIndex'])->name('public.penduduk');
 Route::get('/apbdesa', [\App\Http\Controllers\ApbdesaController::class, 'publicIndex'])->name('public.apbdesa');
+Route::get('/umkm-desa', [\App\Http\Controllers\UmkmDesaController::class, 'publicIndex'])->name('public.umkm');
+Route::get('/umkm-desa/{id}', [\App\Http\Controllers\UmkmDesaController::class, 'publicShow'])->name('public.umkm.show');
 Route::get('/kritik-saran', [KritikSaranController::class, 'publicIndex'])->name('public.kritik-saran');
 Route::post('/kritik-saran', [KritikSaranController::class, 'store'])->name('public.kritik-saran.store');
 
@@ -64,8 +67,13 @@ Route::middleware(['auth'])->group(function () {
 
     // ==================== PENDUDUK ====================
     Route::get('/penduduk/search', [PendudukController::class, 'search'])->name('penduduk.search')->middleware('role:kaur_umum,kepala_desa');
-    Route::resource('penduduk', PendudukController::class)->only(['index', 'show'])->middleware('role:kaur_umum,kepala_desa');
-    Route::resource('penduduk', PendudukController::class)->except(['index', 'show'])->middleware('role:kaur_umum');
+    Route::get('/penduduk/create', [PendudukController::class, 'create'])->name('penduduk.create')->middleware('role:kaur_umum');
+    Route::post('/penduduk', [PendudukController::class, 'store'])->name('penduduk.store')->middleware('role:kaur_umum');
+    Route::get('/penduduk', [PendudukController::class, 'index'])->name('penduduk.index')->middleware('role:kaur_umum,kepala_desa');
+    Route::get('/penduduk/{penduduk}', [PendudukController::class, 'show'])->name('penduduk.show')->middleware('role:kaur_umum,kepala_desa');
+    Route::get('/penduduk/{penduduk}/edit', [PendudukController::class, 'edit'])->name('penduduk.edit')->middleware('role:kaur_umum');
+    Route::put('/penduduk/{penduduk}', [PendudukController::class, 'update'])->name('penduduk.update')->middleware('role:kaur_umum');
+    Route::delete('/penduduk/{penduduk}', [PendudukController::class, 'destroy'])->name('penduduk.destroy')->middleware('role:kaur_umum');
 
     // ==================== SURAT ====================
     Route::prefix('surat')->name('surat.')->group(function () {
@@ -82,12 +90,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/permohonan/create', [SuratController::class, 'permohonanCreate'])->name('permohonan.create')->middleware('role:penduduk');
         Route::post('/permohonan', [SuratController::class, 'permohonanStore'])->name('permohonan.store')->middleware('role:penduduk');
         Route::get('/permohonan/{id}', [SuratController::class, 'permohonanShow'])->name('permohonan.show');
+        Route::get('/permohonan/{id}/cetak', [SuratController::class, 'permohonanCetak'])->name('permohonan.cetak');
         
         Route::middleware('role:kaur_umum,kepala_desa')->group(function () {
             Route::delete('/permohonan/{id}', [SuratController::class, 'permohonanDestroy'])->name('permohonan.destroy');
             Route::post('/permohonan/{id}/verifikasi', [SuratController::class, 'permohonanVerifikasi'])->name('permohonan.verifikasi');
             Route::post('/permohonan/{id}/upload-surat', [SuratController::class, 'permohonanUploadSurat'])->name('permohonan.upload-surat');
-            Route::get('/permohonan/{id}/cetak', [SuratController::class, 'permohonanCetak'])->name('permohonan.cetak');
         });
     });
 
@@ -109,12 +117,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/perangkat/update-all', [PerangkatDesaController::class, 'updateAll'])->name('perangkat.update.all')->middleware('role:kaur_umum');
 
     // ==================== BANTUAN ====================
+    Route::get('/bantuan/search-penduduk', [BantuanController::class, 'searchPenduduk'])->name('bantuan.search-penduduk')->middleware('role:kaur_umum,kepala_desa');
     Route::get('/bantuan/filter', [BantuanController::class, 'filter'])->name('bantuan.filter')->middleware('role:kaur_umum,kepala_desa');
-    Route::resource('bantuan', BantuanController::class)->only(['index', 'show'])->middleware('role:kaur_umum,kepala_desa');
-    Route::resource('bantuan', BantuanController::class)->except(['index', 'show'])->middleware('role:kaur_umum');
+    Route::get('/bantuan/create', [BantuanController::class, 'create'])->name('bantuan.create')->middleware('role:kaur_umum');
+    Route::post('/bantuan', [BantuanController::class, 'store'])->name('bantuan.store')->middleware('role:kaur_umum');
+    Route::get('/bantuan', [BantuanController::class, 'index'])->name('bantuan.index')->middleware('role:kaur_umum,kepala_desa');
+    Route::get('/bantuan/{bantuan}', [BantuanController::class, 'show'])->name('bantuan.show')->middleware('role:kaur_umum,kepala_desa');
+    Route::get('/bantuan/{bantuan}/edit', [BantuanController::class, 'edit'])->name('bantuan.edit')->middleware('role:kaur_umum');
+    Route::put('/bantuan/{bantuan}', [BantuanController::class, 'update'])->name('bantuan.update')->middleware('role:kaur_umum');
+    Route::delete('/bantuan/{bantuan}', [BantuanController::class, 'destroy'])->name('bantuan.destroy')->middleware('role:kaur_umum');
 
     // ==================== BANTUAN PENDUDUK (TERPISAH) ====================
     Route::get('/data-bantuan-saya', [BantuanController::class, 'pendudukIndex'])->name('bantuan.penduduk');
+
+    // ==================== UMKM DESA ====================
+    Route::resource('umkm', \App\Http\Controllers\UmkmDesaController::class)->middleware('role:kaur_umum,kepala_desa');
 
     // ==================== KRITIK SARAN ====================
     Route::get('/kritik-saran', [KritikSaranController::class, 'index'])->name('kritik-saran.index')->middleware('role:kaur_umum,kepala_desa');

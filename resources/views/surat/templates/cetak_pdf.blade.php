@@ -149,6 +149,11 @@
                 <td>{{ $permohonan->penduduk->agama ?? '-' }}</td>
             </tr>
             <tr>
+                <td>Kewarganegaraan</td>
+                <td>:</td>
+                <td>{{ ($permohonan->penduduk->kewarganegaraan ?? 'WNI') == 'WNI' ? 'Warga Negara Indonesia (WNI)' : ($permohonan->penduduk->kewarganegaraan ?? 'WNI') }}</td>
+            </tr>
+            <tr>
                 <td>Pekerjaan</td>
                 <td>:</td>
                 <td>{{ $permohonan->penduduk->pekerjaan ?? '-' }}</td>

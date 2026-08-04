@@ -272,11 +272,40 @@
             </div>
         </div>
 
-        <!-- NKK -->
+        <!-- Program Bantuan -->
         <div class="row mb-2 align-items-center info-row">
-            <div class="col-md-3 label-col">NKK</div>
+            <div class="col-md-3 label-col">Program Bantuan</div>
             <div class="col-md-9 value-col">
-                <input type="text" class="form-control" value="{{ $penerima->penduduk->no_kk ?? '-' }}" readonly>
+                <input type="text" class="form-control text-success fw-bold" value="{{ $penerima->program_bantuan }}" readonly>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="row mb-2 align-items-center info-row">
+            <div class="col-md-3 label-col">Status Penerimaan</div>
+            <div class="col-md-9 value-col">
+                <span class="badge px-3 py-2 text-uppercase fs-7 
+                    @if($penerima->status == 'diterima') bg-success 
+                    @elseif($penerima->status == 'diproses') bg-primary 
+                    @else bg-warning text-dark @endif">
+                    {{ ucfirst($penerima->status) }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Tanggal Terima -->
+        <div class="row mb-2 align-items-center info-row">
+            <div class="col-md-3 label-col">Tanggal Terima</div>
+            <div class="col-md-9 value-col">
+                <input type="text" class="form-control" value="{{ optional($penerima->tanggal_terima)->format('d F Y') ?? '-' }}" readonly>
+            </div>
+        </div>
+
+        <!-- Keterangan Catatan -->
+        <div class="row mb-2 align-items-center info-row">
+            <div class="col-md-3 label-col">Keterangan / Detail</div>
+            <div class="col-md-9 value-col">
+                <input type="text" class="form-control" value="{{ $penerima->keterangan ?? '-' }}" readonly>
             </div>
         </div>
 

@@ -99,26 +99,46 @@ class PerangkatDesaController extends Controller
 
     public function updateAll(Request $request)
     {
+        $request->validate([
+            'foto.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ]);
+
         $jabatans = $request->input('jabatan', []);
         $namas = $request->input('nama', []);
 
         $perangkatList = PerangkatDesa::whereIn('jabatan', $jabatans)->get()->keyBy('jabatan');
 
         foreach ($jabatans as $index => $jabatan) {
-            $nama = $namas[$index] ?? '';
+            $nama = trim($namas[$index] ?? '');
 
             // Cari data perangkat berdasarkan jabatan
             $perangkat = $perangkatList->get($jabatan);
 
             if ($nama) {
                 // Jika ada nama, update atau create
-                if ($perangkat) {
-                    $perangkat->nama = $nama;
-                } else {
+                if (!$perangkat) {
                     $perangkat = new PerangkatDesa;
                     $perangkat->jabatan = $jabatan;
-                    $perangkat->nama = $nama;
                 }
+                $perangkat->nama = $nama;
+
+                // Cek opsi hapus foto jika dicentang
+                if ($request->has("hapus_foto.$index")) {
+                    if ($perangkat->foto && Storage::disk('public')->exists($perangkat->foto)) {
+                        Storage::disk('public')->delete($perangkat->foto);
+                    }
+                    $perangkat->foto = null;
+                }
+
+                // Handle upload foto baru untuk index ini
+                if ($request->hasFile("foto.$index")) {
+                    if ($perangkat->foto && Storage::disk('public')->exists($perangkat->foto)) {
+                        Storage::disk('public')->delete($perangkat->foto);
+                    }
+                    $path = $request->file("foto.$index")->store('perangkat', 'public');
+                    $perangkat->foto = $path;
+                }
+
                 $perangkat->save();
             } else {
                 // Jika nama kosong, hapus data jika ada

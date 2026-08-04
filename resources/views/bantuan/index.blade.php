@@ -202,6 +202,10 @@
         background: linear-gradient(135deg, #d4edda, #a8e0b0);
         color: #1a472a;
     }
+    .badge-diproses {
+        background: linear-gradient(135deg, #e3f2fd, #90caf9);
+        color: #0d47a1;
+    }
     .badge-dialihkan {
         background: linear-gradient(135deg, #fff3cd, #ffe69c);
         color: #856404;
@@ -458,22 +462,36 @@
             </div>
         @endif
 
-        <!-- Filter Status -->
-        <div class="row mb-3 align-items-center">
-            <div class="col-md-6">
-                <form action="{{ route('bantuan.filter') }}" method="GET" class="d-flex align-items-center">
-                    <select name="status" class="form-select filter-select me-2" style="max-width: 200px;">
+        <!-- Pencarian & Filter Status -->
+        <div class="row mb-3 align-items-center g-2">
+            <div class="col-md-7">
+                <form action="{{ route('bantuan.index') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Input Pencarian Nama / NIK -->
+                    <div class="position-relative flex-grow-1" style="min-width: 200px;">
+                        <input type="text" 
+                               name="keyword" 
+                               class="form-control form-control-sm filter-select" 
+                               placeholder="🔍 Cari nama / NIK penerima..." 
+                               value="{{ request('keyword') }}"
+                               style="height: 38px; border-radius: 10px;">
+                    </div>
+
+                    <!-- Filter Status -->
+                    <select name="status" class="form-select filter-select" style="max-width: 160px; height: 38px; border-radius: 10px;">
                         <option value="">Semua Status</option>
                         <option value="diterima" {{ request('status') == 'diterima' ? 'selected' : '' }}>Diterima</option>
+                        <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
                         <option value="dialihkan" {{ request('status') == 'dialihkan' ? 'selected' : '' }}>Dialihkan</option>
                     </select>
-                    <button type="submit" class="btn btn-filter">Filter</button>
-                    @if(request('status'))
-                        <a href="{{ route('bantuan.index') }}" class="btn btn-reset-filter">✕</a>
+
+                    <button type="submit" class="btn btn-filter" style="height: 38px; border-radius: 10px; padding: 0 16px;">Cari</button>
+
+                    @if(request('keyword') || request('status'))
+                        <a href="{{ route('bantuan.index') }}" class="btn btn-reset-filter" title="Reset Pencarian" style="height: 38px; line-height: 24px; border-radius: 10px; padding: 0 12px;">Reset ✕</a>
                     @endif
                 </form>
             </div>
-            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+            <div class="col-md-5 text-md-end mt-2 mt-md-0 d-flex align-items-center justify-content-md-end justify-content-between gap-2">
                 <a href="{{ route('public.bantuan') }}" target="_blank" class="btn btn-lihat-public">
                     Lihat Daftar Penerima Bantuan
                 </a>
@@ -514,11 +532,14 @@
                         <td>{{ Str::limit($item->penduduk->alamat ?? '-', 25) }}</td>
                         <td>{{ $item->penduduk->pekerjaan ?? '-' }}</td>
                         <td>
-                            <span class="badge-status badge-{{ $item->status == 'diterima' ? 'diterima' : 'dialihkan' }}">
+                            <span class="badge-status badge-{{ $item->status }}">
                                 {{ ucfirst($item->status) }}
                             </span>
                             <br>
-                            <small class="text-muted" style="font-size: 0.65rem;">{{ $item->program_bantuan }}</small>
+                            <small class="text-success fw-bold" style="font-size: 0.7rem;">{{ $item->program_bantuan }}</small>
+                            @if($item->keterangan)
+                                <br><small class="text-muted" style="font-size: 0.65rem;"><em>({{ $item->keterangan }})</em></small>
+                            @endif
                         </td>
                         <td>
                             <div class="btn-group btn-group-sm">

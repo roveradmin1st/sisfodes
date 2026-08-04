@@ -5,9 +5,9 @@
             $role = Auth::user()->role;
         $sidebarConfig = [
             'kaur_umum' => [
-                'gradient' => 'linear-gradient(135deg, #1a472a, #2d6a4f)',
-                'active_bg' => 'rgba(76, 175, 80, 0.25)',
-                'badge_bg' => '#4caf50',
+                'gradient' => 'linear-gradient(135deg, #0d2b5e, #1a4a7a)',
+                'active_bg' => 'rgba(33, 150, 243, 0.25)',
+                'badge_bg' => '#2196f3',
                 'icon' => 'fa-user-tie'
             ],
             'kepala_desa' => [
@@ -17,13 +17,13 @@
                 'icon' => 'fa-user-cog'
             ],
             'penduduk' => [
-                'gradient' => 'linear-gradient(135deg, #4a2810, #6d3d1a)',
-                'active_bg' => 'rgba(255, 152, 0, 0.25)',
-                'badge_bg' => '#ff9800',
+                'gradient' => 'linear-gradient(135deg, #0d2b5e, #1a4a7a)',
+                'active_bg' => 'rgba(33, 150, 243, 0.25)',
+                'badge_bg' => '#2196f3',
                 'icon' => 'fa-user'
             ]
         ];
-        $config = $sidebarConfig[$role] ?? $sidebarConfig['kaur_umum'];
+        $config = $sidebarConfig[$role] ?? $sidebarConfig['kepala_desa'];
     @endphp
 
     <!-- SIDEBAR -->
@@ -36,6 +36,7 @@
             </div>
             <div>
                 <span class="text-white fw-bold d-block" style="font-size: 0.95rem;">Desa Sidomulyo</span>
+                <small class="text-white-50 d-block" style="font-size: 0.7rem; margin-top: -2px;">Kabupaten Deli Serdang</small>
                 <small class="text-white-50" style="font-size: 0.75rem;">{{ Auth::user()->nama }}</small>
             </div>
         </div>
@@ -64,6 +65,8 @@
                     style="{{ request()->routeIs('surat.permohonan.*') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Pengajuan Surat</a>
                 <a href="{{ route('bantuan.index') }}" class="nav-link {{ request()->routeIs('bantuan.*') ? 'active' : '' }}"
                     style="{{ request()->routeIs('bantuan.*') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Data Bantuan</a>
+                <a href="{{ route('umkm.index') }}" class="nav-link {{ request()->routeIs('umkm.*') ? 'active' : '' }}"
+                    style="{{ request()->routeIs('umkm.*') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">UMKM Desa</a>
                 <a href="{{ route('kritik-saran.index') }}"
                     class="nav-link {{ request()->routeIs('kritik-saran.index') ? 'active' : '' }}"
                     style="{{ request()->routeIs('kritik-saran.index') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Kritik & Saran</a>

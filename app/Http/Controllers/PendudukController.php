@@ -179,6 +179,7 @@ class PendudukController extends Controller
             'tanggal_lahir' => 'required|date',
             'jenis_kelamin' => 'required|in:L,P',
             'agama' => 'required|string|max:20',
+            'kewarganegaraan' => 'nullable|string|max:20',
             'alamat' => 'required|string',
             'status_penduduk' => 'required|in:tetap,sementara',
             'is_kepala_keluarga' => 'nullable|boolean',
@@ -189,6 +190,7 @@ class PendudukController extends Controller
         }
 
         $data = $request->all();
+        $data['kewarganegaraan'] = $request->kewarganegaraan ?: 'WNI';
         $data['is_kepala_keluarga'] = $request->has('is_kepala_keluarga') ? 1 : 0;
 
         Penduduk::create($data);
@@ -223,6 +225,7 @@ class PendudukController extends Controller
             'tanggal_lahir' => 'required|date',
             'jenis_kelamin' => 'required|in:L,P',
             'agama' => 'required|string|max:20',
+            'kewarganegaraan' => 'nullable|string|max:20',
             'alamat' => 'required|string',
             'status_penduduk' => 'required|in:tetap,sementara',
             'is_kepala_keluarga' => 'nullable|boolean',
@@ -233,6 +236,7 @@ class PendudukController extends Controller
         }
 
         $data = $request->all();
+        $data['kewarganegaraan'] = $request->kewarganegaraan ?: 'WNI';
         $data['is_kepala_keluarga'] = $request->has('is_kepala_keluarga') ? 1 : 0;
 
         $penduduk->update($data);

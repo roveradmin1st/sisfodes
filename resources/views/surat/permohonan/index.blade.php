@@ -579,8 +579,8 @@
 
                                 <!-- Cetak Draft PDF resmi -->
                                 <a href="{{ route('surat.permohonan.cetak', $item->id_permohonan) }}" target="_blank" 
-                                   class="btn btn-info text-white" title="Cetak Draft PDF">
-                                    <i class="fas fa-file-pdf"></i> PDF
+                                   class="btn btn-info text-white" title="Cetak / Lihat PDF">
+                                    <i class="fas fa-file-pdf me-1"></i> PDF
                                 </a>
 
                                 <!-- Cetak (jika selesai) -->

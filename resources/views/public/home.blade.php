@@ -6,7 +6,7 @@
 <style>
     /* Custom CSS for Homepage */
     .hero-section {
-        background: linear-gradient(135deg, #f9fbf9 0%, #eef6f0 100%);
+        background: linear-gradient(135deg, #f4f8ff 0%, #e8f1fd 100%);
         padding: 80px 0;
         position: relative;
         overflow: hidden;
@@ -41,7 +41,7 @@
     }
     
     .btn-hero-primary {
-        background: var(--primary-dark);
+        background: linear-gradient(135deg, #0d2b5e, #1a4a7a);
         color: white;
         padding: 12px 25px;
         border-radius: 8px;
@@ -51,9 +51,9 @@
     }
     
     .btn-hero-primary:hover {
-        background: #1a472a;
+        background: linear-gradient(135deg, #0a2148, #0d2b5e);
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(7, 42, 30, 0.2);
+        box-shadow: 0 4px 15px rgba(13, 43, 94, 0.25);
         color: white;
     }
     
@@ -185,7 +185,7 @@
     
     /* Card Statistik */
     .stat-card {
-        background: var(--primary-dark);
+        background: linear-gradient(135deg, #0d2b5e, #1a4a7a);
         color: white;
         border-radius: 12px;
         padding: 30px;
@@ -273,15 +273,29 @@
     $profil = App\Models\ProfilDesa::first();
     $namaDesa = $profil ? $profil->nama_desa : 'Sidomulyo';
     
-    // Get real stats
+    // Get real stats dynamically from database
     $totalPenduduk = App\Models\Penduduk::count();
-    $totalDusun = App\Models\Penduduk::distinct('dusun')->count('dusun');
+    $totalDusun = 6;
     
     // Get latest news
     $beritaTerbaru = App\Models\InformasiDesa::where('kategori', 'berita')
                         ->where('status_publish', 'publish')
                         ->latest()
                         ->first();
+
+    // Get latest galeri photos
+    $galeriTerbaru = App\Models\InformasiDesa::where('kategori', 'galeri')
+                        ->where('status_publish', 'publish')
+                        ->whereNotNull('gambar')
+                        ->latest()
+                        ->take(6)
+                        ->get();
+
+    // Get latest UMKM products
+    $umkmTerbaru = App\Models\UmkmDesa::where('status', 'publish')
+                        ->latest()
+                        ->take(6)
+                        ->get();
 @endphp
 
 <!-- ==================== HERO SECTION ==================== -->
@@ -292,7 +306,7 @@
                 <div class="badge-kecamatan">
                     <i class="fas fa-map-marker-alt"></i> KECAMATAN BIRU-BIRU
                 </div>
-                <h1 class="hero-title">Selamat Datang di Portal Desa {{ $namaDesa }}</h1>
+                <h1 class="hero-title">Selamat Datang di website resmi desa sidomulyo</h1>
                 <p class="hero-subtitle">
                     Pusat layanan digital dan informasi terpadu bagi warga Desa {{ $namaDesa }}. Kami berkomitmen untuk memberikan pelayanan publik yang transparan, akuntabel, dan modern demi kemajuan bersama.
                 </p>
@@ -352,16 +366,16 @@
                     <p class="service-desc">Informasi terkini mengenai kegiatan dan program pembangunan di Desa {{ $namaDesa }}.</p>
                     
                     @if($beritaTerbaru)
-                    <a href="{{ route('public.informasi') }}" class="text-decoration-none text-dark">
-                        <div class="news-snippet">
+                    <a href="{{ route('public.informasi.show', $beritaTerbaru->id_informasi) }}" class="text-decoration-none text-dark">
+                        <div class="news-snippet" title="Klik untuk membaca selengkapnya">
                             @if($beritaTerbaru->gambar)
                                 <img src="{{ asset('storage/' . $beritaTerbaru->gambar) }}" class="news-thumb" alt="Thumb">
                             @else
                                 <div class="news-thumb d-flex align-items-center justify-content-center text-muted"><i class="fas fa-image"></i></div>
                             @endif
                             <div>
-                                <h6 class="mb-1" style="font-size: 0.85rem; font-weight: 600;">{{ Str::limit($beritaTerbaru->judul, 35) }}</h6>
-                                <small class="text-muted" style="font-size: 0.75rem;">{{ $beritaTerbaru->created_at->diffForHumans() }}</small>
+                                <h6 class="mb-1 text-success fw-bold" style="font-size: 0.85rem;">{{ Str::limit($beritaTerbaru->judul, 35) }}</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ $beritaTerbaru->created_at->diffForHumans() }} • <span class="text-primary">Baca Detail <i class="fas fa-arrow-right" style="font-size: 0.65rem;"></i></span></small>
                             </div>
                         </div>
                     </a>
@@ -376,18 +390,64 @@
             <!-- Galeri Kegiatan -->
             <div class="col-md-4">
                 <div class="service-card">
-                    <div class="service-icon"><i class="far fa-images"></i></div>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="service-icon"><i class="far fa-images"></i></div>
+                        <i class="far fa-images text-light" style="font-size: 3.5rem; opacity: 0.25; color: var(--primary-light);"></i>
+                    </div>
                     <h4 class="service-title">Galeri Kegiatan</h4>
-                    <p class="service-desc">Dokumentasi momen-momen penting kemasyarakatan di {{ $namaDesa }}.</p>
+                    <p class="service-desc">Dokumentasi foto kegiatan & momen kemasyarakatan di {{ $namaDesa }}.</p>
+                    
+                    @if(count($galeriTerbaru) > 0)
+                    <a href="#section-galeri" class="text-decoration-none text-dark">
+                        <div class="news-snippet" title="Lihat Dokumentasi Galeri">
+                            @if($galeriTerbaru->first()->gambar)
+                                <img src="{{ asset('storage/' . $galeriTerbaru->first()->gambar) }}" class="news-thumb" alt="Thumb" style="object-fit: cover;">
+                            @else
+                                <div class="news-thumb d-flex align-items-center justify-content-center text-muted"><i class="fas fa-image"></i></div>
+                            @endif
+                            <div>
+                                <h6 class="mb-1 text-success fw-bold" style="font-size: 0.85rem;">{{ Str::limit($galeriTerbaru->first()->judul, 35) }}</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ count($galeriTerbaru) }} Foto Terbaru • <span class="text-primary">Lihat Foto <i class="fas fa-arrow-down" style="font-size: 0.65rem;"></i></span></small>
+                            </div>
+                        </div>
+                    </a>
+                    @else
+                    <div class="news-snippet justify-content-center text-muted" style="font-size: 0.85rem;">
+                        Belum ada foto galeri.
+                    </div>
+                    @endif
                 </div>
             </div>
             
             <!-- UMKM Desa -->
             <div class="col-md-4">
                 <div class="service-card">
-                    <div class="service-icon"><i class="fas fa-store"></i></div>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="service-icon"><i class="fas fa-store"></i></div>
+                        <i class="fas fa-store text-light" style="font-size: 3.5rem; opacity: 0.25; color: var(--primary-light);"></i>
+                    </div>
                     <h4 class="service-title">UMKM Desa</h4>
                     <p class="service-desc">Dukungan produk unggulan lokal dari pengrajin dan pengusaha desa.</p>
+                    
+                    @if(count($umkmTerbaru) > 0)
+                    <a href="{{ route('public.umkm') }}" class="text-decoration-none text-dark">
+                        <div class="news-snippet" title="Lihat Katalog UMKM Desa">
+                            @if($umkmTerbaru->first()->foto)
+                                <img src="{{ asset('storage/' . $umkmTerbaru->first()->foto) }}" class="news-thumb" alt="Thumb" style="object-fit: cover;">
+                            @else
+                                <div class="news-thumb d-flex align-items-center justify-content-center text-muted"><i class="fas fa-store"></i></div>
+                            @endif
+                            <div>
+                                <h6 class="mb-1 text-success fw-bold" style="font-size: 0.85rem;">{{ Str::limit($umkmTerbaru->first()->nama_usaha, 35) }}</h6>
+                                <small class="text-muted" style="font-size: 0.75rem;">{{ count($umkmTerbaru) }} Produk • <span class="text-primary">Lihat UMKM <i class="fas fa-arrow-right" style="font-size: 0.65rem;"></i></span></small>
+                            </div>
+                        </div>
+                    </a>
+                    @else
+                    <div class="news-snippet justify-content-center text-muted" style="font-size: 0.85rem;">
+                        Belum ada produk UMKM.
+                    </div>
+                    @endif
                 </div>
             </div>
             
@@ -411,6 +471,110 @@
         </div>
     </div>
 </section>
+
+<!-- ==================== GALERI KEGIATAN DESA ==================== -->
+@if(count($galeriTerbaru) > 0)
+<section class="py-5 bg-light" id="section-galeri">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+            <div>
+                <span class="badge bg-primary text-uppercase px-3 py-2 rounded-pill mb-2" style="font-size: 0.75rem; background-color: #0d2b5e !important;">Dokumentasi Foto</span>
+                <h3 class="fw-bold text-dark mb-0">Galeri Kegiatan {{ $namaDesa }}</h3>
+                <p class="text-muted mb-0 small">Foto dokumentasi acara, program pembangunan, dan kegiatan masyarakat Desa {{ $namaDesa }}.</p>
+            </div>
+            <div>
+                <a href="{{ route('public.informasi') }}" class="btn btn-outline-primary rounded-pill px-4" style="font-size: 0.85rem; font-weight: 600; color: #0d2b5e; border-color: #0d2b5e;">
+                    Lihat Semua Informasi & Galeri <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach($galeriTerbaru as $galeri)
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                    <a href="{{ asset('storage/' . $galeri->gambar) }}" target="_blank" title="Klik untuk melihat foto penuh">
+                        <img src="{{ asset('storage/' . $galeri->gambar) }}" 
+                             alt="{{ $galeri->judul }}" 
+                             class="w-100" 
+                             style="height: 220px; object-fit: cover; transition: transform 0.3s ease;"
+                             onmouseover="this.style.transform='scale(1.05)'"
+                             onmouseout="this.style.transform='scale(1)'">
+                    </a>
+                    <div class="card-body p-3">
+                        <h6 class="fw-bold text-dark mb-1" style="font-size: 0.95rem;">
+                            {{ $galeri->judul }}
+                        </h6>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">
+                            <i class="far fa-calendar-alt me-1 text-primary"></i> {{ optional($galeri->tanggal_posting)->format('d F Y') ?? $galeri->created_at->format('d F Y') }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+<!-- ==================== PRODUK UNGGULAN UMKM DESA ==================== -->
+@if(count($umkmTerbaru) > 0)
+<section class="py-5 bg-white border-top">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
+            <div>
+                <span class="badge bg-primary text-uppercase px-3 py-2 rounded-pill mb-2" style="font-size: 0.75rem; background-color: #0d2b5e !important;">Ekonomi Lokal</span>
+                <h3 class="fw-bold text-dark mb-0">UMKM & Produk Unggulan Desa</h3>
+                <p class="text-muted mb-0 small">Produk kreasi kuliner, kerajinan, dan usaha masyarakat Desa {{ $namaDesa }}.</p>
+            </div>
+            <div>
+                <a href="{{ route('public.umkm') }}" class="btn btn-outline-primary rounded-pill px-4" style="font-size: 0.85rem; font-weight: 600; color: #0d2b5e; border-color: #0d2b5e;">
+                    Lihat Semua Produk UMKM <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach($umkmTerbaru as $umkm)
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 border shadow-sm rounded-4 overflow-hidden bg-white d-flex flex-column">
+                    @if($umkm->foto)
+                        <img src="{{ asset('storage/' . $umkm->foto) }}" alt="{{ $umkm->nama_usaha }}" style="height: 190px; object-fit: cover;" class="w-100">
+                    @else
+                        <div class="bg-light text-center py-5 text-muted d-flex align-items-center justify-content-center" style="height: 190px;">
+                            <i class="fas fa-store fs-1 opacity-25"></i>
+                        </div>
+                    @endif
+                    <div class="card-body p-3 d-flex flex-column flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill" style="font-size: 0.7rem;">{{ $umkm->kategori }}</span>
+                            <span class="fw-bold text-primary" style="font-size: 0.85rem;">{{ $umkm->harga ?? '-' }}</span>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">
+                            {{ $umkm->nama_usaha }}
+                        </h6>
+                        <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
+                            <i class="fas fa-user-circle me-1 text-primary"></i> Pemilik: {{ $umkm->pemilik }}
+                        </small>
+                        <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.8rem; line-height: 1.5;">
+                            {{ Str::limit(strip_tags($umkm->deskripsi), 80) }}
+                        </p>
+                        <div class="d-flex gap-2 mt-auto pt-2 border-top">
+                            <a href="{{ route('public.umkm.show', $umkm->id_umkm) }}" class="btn btn-sm btn-outline-dark rounded-pill flex-grow-1 fw-bold" style="font-size: 0.75rem;">Detail Produk</a>
+                            @if($umkm->no_hp)
+                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $umkm->no_hp) }}?text=Halo%20saya%20tertarik%20dengan%20{{ urlencode($umkm->nama_usaha) }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" style="font-size: 0.75rem;">
+                                <i class="fab fa-whatsapp me-1"></i> Beli
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
 
 <!-- ==================== TENTANG KAMI ==================== -->
 <section class="about-section border-top">

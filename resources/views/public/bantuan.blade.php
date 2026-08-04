@@ -209,7 +209,7 @@
                         <th>Nama Penerima</th>
                         <th>Alamat</th>
                         <th>Program Bantuan</th>
-                        <th>Jumlah Terima</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -219,7 +219,14 @@
                         <td>{{ $item->penduduk->nama ?? '-' }}</td>
                         <td>{{ Str::limit($item->penduduk->alamat ?? '-', 30) }}</td>
                         <td>{{ $item->program_bantuan }}</td>
-                        <td class="fw-bold text-success">Rp 300.000</td>
+                        <td>
+                            <span class="badge px-3 py-1 text-uppercase fs-7 
+                                @if($item->status == 'diterima') bg-success 
+                                @elseif($item->status == 'diproses') bg-primary 
+                                @else bg-warning text-dark @endif">
+                                {{ ucfirst($item->status) }}
+                            </span>
+                        </td>
                     </tr>
                     @empty
                     <tr>

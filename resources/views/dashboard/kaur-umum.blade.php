@@ -17,7 +17,7 @@
         padding: 24px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.04);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border-left: 4px solid #1a472a;
+        border-left: 4px solid #0d2b5e;
         position: relative;
         overflow: hidden;
         cursor: default;
@@ -34,7 +34,7 @@
         opacity: 0.1;
     }
     .stat-card:nth-child(1)::before {
-        background: radial-gradient(circle, #1a472a, transparent 70%);
+        background: radial-gradient(circle, #0d2b5e, transparent 70%);
     }
     .stat-card:nth-child(2)::before {
         background: radial-gradient(circle, #0d6efd, transparent 70%);
@@ -57,7 +57,7 @@
         font-size: 2.2rem;
         font-weight: 700;
         margin-bottom: 2px;
-        background: linear-gradient(135deg, #1a472a, #2d6a4f);
+        background: linear-gradient(135deg, #0d2b5e, #1a4a7a);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: inline-block;

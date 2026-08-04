@@ -101,6 +101,10 @@
         background: linear-gradient(135deg, #d4edda, #a8e0b0);
         color: #1a472a;
     }
+    .badge-diproses {
+        background: linear-gradient(135deg, #e3f2fd, #90caf9);
+        color: #0d47a1;
+    }
     .badge-dialihkan {
         background: linear-gradient(135deg, #fff3cd, #ffe69c);
         color: #856404;
@@ -294,7 +298,7 @@
                         <td>{{ $item->program_bantuan }}</td>
                         <td>{{ $item->tanggal_terima->format('d/m/Y') }}</td>
                         <td>
-                            <span class="badge-status badge-{{ $item->status == 'diterima' ? 'diterima' : 'dialihkan' }}">
+                            <span class="badge-status badge-{{ $item->status }}">
                                 {{ ucfirst($item->status) }}
                             </span>
                         </td>

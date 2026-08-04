@@ -446,7 +446,7 @@
                     </tr>
                     <tr>
                         <th>Kewarganegaraan</th>
-                        <td>{{ $penduduk->kewarganegaraan ?? 'WNI' }}</td>
+                        <td><span class="badge bg-success text-white px-3 py-1 rounded-pill fw-bold">{{ $penduduk->kewarganegaraan ?? 'WNI' }}</span></td>
                     </tr>
                     <tr>
                         <th>Status Penduduk</th>

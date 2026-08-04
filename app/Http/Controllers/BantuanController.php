@@ -11,36 +11,123 @@ use Illuminate\Support\Facades\Validator;
 class BantuanController extends Controller
 {
     // ==================== ADMIN ====================
-    public function index()
+    public function index(Request $request)
     {
-        $penerima = PenerimaBantuan::with('penduduk')
-            ->latest()
-            ->paginate(10);
+        $query = PenerimaBantuan::with('penduduk');
+
+        if ($request->filled('keyword')) {
+            $keyword = trim($request->keyword);
+            $query->where(function($subQuery) use ($keyword) {
+                $subQuery->whereHas('penduduk', function ($q) use ($keyword) {
+                    $q->where('nama', 'LIKE', "%{$keyword}%")
+                      ->orWhere('nik', 'LIKE', "%{$keyword}%")
+                      ->orWhere('no_kk', 'LIKE', "%{$keyword}%")
+                      ->orWhere('alamat', 'LIKE', "%{$keyword}%");
+                })->orWhere('program_bantuan', 'LIKE', "%{$keyword}%")
+                  ->orWhere('keterangan', 'LIKE', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $penerima = $query->latest()->paginate(10)->appends($request->all());
 
         return view('bantuan.index', compact('penerima'));
     }
 
     public function create()
     {
-        $penduduk = Penduduk::select('id_penduduk', 'nama', 'nik')->get();
+        return view('bantuan.create');
+    }
 
-        return view('bantuan.create', compact('penduduk'));
+    public function searchPenduduk(Request $request)
+    {
+        $nik = trim($request->get('nik', ''));
+        $q = trim($request->get('q', ''));
+
+        if ($nik !== '') {
+            $penduduk = Penduduk::where('nik', $nik)->first();
+            return response()->json($penduduk);
+        }
+
+        if (strlen($q) >= 2) {
+            $penduduk = Penduduk::where('nama', 'LIKE', "%{$q}%")
+                ->orWhere('nik', 'LIKE', "%{$q}%")
+                ->orderBy('nama', 'asc')
+                ->select('id_penduduk', 'nama', 'nik', 'no_kk', 'alamat', 'pekerjaan', 'tanggal_lahir', 'jenis_kelamin')
+                ->limit(10)
+                ->get();
+            return response()->json($penduduk);
+        }
+
+        return response()->json(null);
     }
 
     public function store(Request $request)
     {
+        if ($request->program_bantuan === 'Lainnya' && $request->filled('program_bantuan_lainnya')) {
+            $request->merge(['program_bantuan' => $request->program_bantuan_lainnya]);
+        }
+
         $validator = Validator::make($request->all(), [
-            'id_penduduk' => 'required|exists:penduduk,id_penduduk',
+            'nik' => 'required|string|min:15|max:16',
+            'nama' => 'required|string|max:100',
+            'no_kk' => 'nullable|string|max:16',
+            'alamat' => 'nullable|string',
+            'pekerjaan' => 'nullable|string|max:100',
+            'tanggal_lahir' => 'nullable|date',
+            'jenis_kelamin' => 'nullable|in:L,P',
             'program_bantuan' => 'required|string|max:100',
+            'keterangan' => 'nullable|string|max:150',
             'tanggal_terima' => 'required|date',
-            'status' => 'required|in:diterima,dialihkan',
+            'status' => 'required|in:diterima,dialihkan,diproses',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
-        PenerimaBantuan::create($request->all());
+        // Cari atau buat data penduduk baru dari data yang diketik
+        $penduduk = Penduduk::where('nik', $request->nik)->first();
+
+        if (!$penduduk) {
+            $penduduk = Penduduk::create([
+                'nik' => $request->nik,
+                'no_kk' => $request->no_kk ?: $request->nik,
+                'nama' => strtoupper($request->nama),
+                'tempat_lahir' => 'Deli Serdang',
+                'tanggal_lahir' => $request->tanggal_lahir ?: now()->subYears(30)->format('Y-m-d'),
+                'jenis_kelamin' => $request->jenis_kelamin ?: 'L',
+                'agama' => 'Islam',
+                'alamat' => $request->alamat ?: 'Desa Sidomulyo',
+                'dusun' => 'Dusun I',
+                'pekerjaan' => $request->pekerjaan ?: 'Lainnya',
+                'status_penduduk' => 'tetap',
+            ]);
+        } else {
+            // Update jika ada perubahan data warga
+            $updateData = [];
+            if ($request->filled('nama')) $updateData['nama'] = strtoupper($request->nama);
+            if ($request->filled('no_kk')) $updateData['no_kk'] = $request->no_kk;
+            if ($request->filled('alamat')) $updateData['alamat'] = $request->alamat;
+            if ($request->filled('pekerjaan')) $updateData['pekerjaan'] = $request->pekerjaan;
+            if ($request->filled('jenis_kelamin')) $updateData['jenis_kelamin'] = $request->jenis_kelamin;
+            if ($request->filled('tanggal_lahir')) $updateData['tanggal_lahir'] = $request->tanggal_lahir;
+
+            if (!empty($updateData)) {
+                $penduduk->update($updateData);
+            }
+        }
+
+        PenerimaBantuan::create([
+            'id_penduduk' => $penduduk->id_penduduk,
+            'program_bantuan' => $request->program_bantuan,
+            'keterangan' => $request->keterangan,
+            'tanggal_terima' => $request->tanggal_terima,
+            'status' => $request->status,
+        ]);
 
         return redirect()->route('bantuan.index')
             ->with('success', 'Data penerima bantuan berhasil ditambahkan.');
@@ -56,27 +143,73 @@ class BantuanController extends Controller
     public function edit($id)
     {
         $penerima = PenerimaBantuan::with('penduduk')->findOrFail($id);
-        $penduduk = Penduduk::select('id_penduduk', 'nama', 'nik')->get();
 
-        return view('bantuan.edit', compact('penerima', 'penduduk'));
+        return view('bantuan.edit', compact('penerima'));
     }
 
     public function update(Request $request, $id)
     {
         $penerima = PenerimaBantuan::findOrFail($id);
 
+        if ($request->program_bantuan === 'Lainnya' && $request->filled('program_bantuan_lainnya')) {
+            $request->merge(['program_bantuan' => $request->program_bantuan_lainnya]);
+        }
+
         $validator = Validator::make($request->all(), [
-            'id_penduduk' => 'required|exists:penduduk,id_penduduk',
+            'nik' => 'required|string|min:15|max:16',
+            'nama' => 'required|string|max:100',
+            'no_kk' => 'nullable|string|max:16',
+            'alamat' => 'nullable|string',
+            'pekerjaan' => 'nullable|string|max:100',
+            'tanggal_lahir' => 'nullable|date',
+            'jenis_kelamin' => 'nullable|in:L,P',
             'program_bantuan' => 'required|string|max:100',
+            'keterangan' => 'nullable|string|max:150',
             'tanggal_terima' => 'required|date',
-            'status' => 'required|in:diterima,dialihkan',
+            'status' => 'required|in:diterima,dialihkan,diproses',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
 
-        $penerima->update($request->all());
+        $penduduk = Penduduk::where('nik', $request->nik)->first();
+
+        if (!$penduduk) {
+            $penduduk = Penduduk::create([
+                'nik' => $request->nik,
+                'no_kk' => $request->no_kk ?: $request->nik,
+                'nama' => strtoupper($request->nama),
+                'tempat_lahir' => 'Deli Serdang',
+                'tanggal_lahir' => $request->tanggal_lahir ?: now()->subYears(30)->format('Y-m-d'),
+                'jenis_kelamin' => $request->jenis_kelamin ?: 'L',
+                'agama' => 'Islam',
+                'alamat' => $request->alamat ?: 'Desa Sidomulyo',
+                'dusun' => 'Dusun I',
+                'pekerjaan' => $request->pekerjaan ?: 'Lainnya',
+                'status_penduduk' => 'tetap',
+            ]);
+        } else {
+            $updateData = [];
+            if ($request->filled('nama')) $updateData['nama'] = strtoupper($request->nama);
+            if ($request->filled('no_kk')) $updateData['no_kk'] = $request->no_kk;
+            if ($request->filled('alamat')) $updateData['alamat'] = $request->alamat;
+            if ($request->filled('pekerjaan')) $updateData['pekerjaan'] = $request->pekerjaan;
+            if ($request->filled('jenis_kelamin')) $updateData['jenis_kelamin'] = $request->jenis_kelamin;
+            if ($request->filled('tanggal_lahir')) $updateData['tanggal_lahir'] = $request->tanggal_lahir;
+
+            if (!empty($updateData)) {
+                $penduduk->update($updateData);
+            }
+        }
+
+        $penerima->update([
+            'id_penduduk' => $penduduk->id_penduduk,
+            'program_bantuan' => $request->program_bantuan,
+            'keterangan' => $request->keterangan,
+            'tanggal_terima' => $request->tanggal_terima,
+            'status' => $request->status,
+        ]);
 
         return redirect()->route('bantuan.index')
             ->with('success', 'Data penerima bantuan berhasil diperbarui.');
@@ -91,18 +224,10 @@ class BantuanController extends Controller
             ->with('success', 'Data penerima bantuan berhasil dihapus.');
     }
 
-    // ==================== FILTER STATUS ====================
+    // ==================== FILTER & SEARCH ====================
     public function filter(Request $request)
     {
-        $query = PenerimaBantuan::with('penduduk');
-
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
-
-        $penerima = $query->latest()->paginate(10);
-
-        return view('bantuan.index', compact('penerima'));
+        return $this->index($request);
     }
 
     // ==================== PENDUDUK (HANYA LIHAT) ====================
@@ -128,10 +253,10 @@ class BantuanController extends Controller
                 ->with('error', 'Data penduduk tidak ditemukan.');
         }
 
-        // Ambil data bantuan berdasarkan penduduk yang login
+        // Ambil data bantuan berdasarkan penduduk yang login (termasuk status diproses dan diterima)
         $penerima = PenerimaBantuan::with('penduduk')
             ->where('id_penduduk', $penduduk->id_penduduk)
-            ->where('status', 'diterima')
+            ->whereIn('status', ['diterima', 'diproses'])
             ->latest()
             ->paginate(10);
 
@@ -141,8 +266,9 @@ class BantuanController extends Controller
     // ==================== FRONTEND (PUBLIC) ====================
     public function publicIndex()
     {
+        // Tampilkan penerima bantuan dengan status diterima dan diproses di dashboard depan
         $penerima = PenerimaBantuan::with('penduduk')
-            ->where('status', 'diterima')
+            ->whereIn('status', ['diterima', 'diproses'])
             ->latest()
             ->paginate(15);
 

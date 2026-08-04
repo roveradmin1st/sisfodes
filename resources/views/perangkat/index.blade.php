@@ -245,7 +245,7 @@
             </div>
         @endif
 
-        <form action="{{ route('perangkat.update.all') }}" method="POST">
+        <form action="{{ route('perangkat.update.all') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
             @php
@@ -269,6 +269,7 @@
 
             @foreach($jabatans as $jabatan => $jenis)
                 @php
+                    $index = $loop->index;
                     $perangkat = $perangkatData->firstWhere('jabatan', $jabatan);
                     $badgeClass = match($jenis) {
                         'kades' => 'badge-kades',
@@ -278,30 +279,59 @@
                         'dusun' => 'badge-dusun',
                         default => 'badge-seksi'
                     };
+                    $fotoUrl = ($perangkat && $perangkat->foto) 
+                        ? asset('storage/' . $perangkat->foto) 
+                        : 'https://ui-avatars.com/api/?name=' . urlencode(($perangkat->nama ?? '') ?: $jabatan) . '&background=1a472a&color=fff';
                 @endphp
-                <div class="perangkat-row row align-items-center">
-                    <div class="col-md-4">
-                        <label class="jabatan-label">
+                <div class="perangkat-row row align-items-center py-2 mb-2 border-bottom">
+                    <div class="col-lg-3 col-md-4 mb-2 mb-md-0">
+                        <label class="jabatan-label d-block">
                             {{ $jabatan }}
-                            <span class="badge-jabatan {{ $badgeClass }}">
+                            <span class="badge-jabatan {{ $badgeClass }} ms-1">
                                 {{ ucfirst($jenis) }}
                             </span>
                         </label>
                         <input type="hidden" name="jabatan[]" value="{{ $jabatan }}">
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-lg-4 col-md-4 mb-2 mb-md-0">
                         <input type="text" 
                                name="nama[]" 
                                class="form-control" 
                                value="{{ $perangkat->nama ?? '' }}"
                                placeholder="Masukkan nama {{ $jabatan }}">
                     </div>
+                    <div class="col-lg-5 col-md-4 d-flex align-items-center gap-2">
+                        <div class="flex-shrink-0">
+                            <img id="preview-img-{{ $index }}" 
+                                 src="{{ $fotoUrl }}" 
+                                 alt="Foto {{ $jabatan }}" 
+                                 class="rounded-circle border shadow-sm" 
+                                 style="width: 48px; height: 48px; object-fit: cover;">
+                        </div>
+                        <div class="flex-grow-1">
+                            <input type="file" 
+                                   name="foto[{{ $index }}]" 
+                                   class="form-control form-control-sm foto-input" 
+                                   accept="image/*"
+                                   data-preview="preview-img-{{ $index }}">
+                        </div>
+                        @if($perangkat && $perangkat->foto)
+                            <div class="form-check ms-1" title="Hapus foto saat ini">
+                                <input class="form-check-input" type="checkbox" name="hapus_foto[{{ $index }}]" value="1" id="hapus_foto_{{ $index }}">
+                                <label class="form-check-label text-danger small" for="hapus_foto_{{ $index }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </label>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             @endforeach
 
             <!-- Tombol Simpan di Kanan -->
             <div class="mt-4 text-end">
-                <button type="submit" class="btn-simpan">Simpan</button>
+                <button type="submit" class="btn-simpan">
+                    <i class="fas fa-save me-1"></i> Simpan
+                </button>
             </div>
         </form>
 
@@ -309,8 +339,8 @@
 </div>
 
 <script>
-// Auto hide alert setelah 5 detik
 document.addEventListener('DOMContentLoaded', function() {
+    // Auto hide alert setelah 5 detik
     setTimeout(function() {
         const alerts = document.querySelectorAll('.alert');
         alerts.forEach(function(alert) {
@@ -321,6 +351,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
         });
     }, 5000);
+
+    // Live preview foto yang di-upload
+    document.querySelectorAll('.foto-input').forEach(function(input) {
+        input.addEventListener('change', function() {
+            const previewId = this.getAttribute('data-preview');
+            const previewImg = document.getElementById(previewId);
+            if (this.files && this.files[0] && previewImg) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    previewImg.src = evt.target.result;
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
 });
 </script>
 
