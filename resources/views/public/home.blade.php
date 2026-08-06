@@ -308,7 +308,7 @@
                 </div>
                 <h1 class="hero-title">Selamat Datang di website resmi desa sidomulyo</h1>
                 <p class="hero-subtitle">
-                    Pusat layanan digital dan informasi terpadu bagi warga Desa {{ $namaDesa }}. Kami berkomitmen untuk memberikan pelayanan publik yang transparan, akuntabel, dan modern demi kemajuan bersama.
+                    Pusat layanan digital dan informasi terpadu bagi warga {{ $namaDesa }}. Kami berkomitmen untuk memberikan pelayanan publik yang transparan, akuntabel, dan modern demi kemajuan bersama.
                 </p>
                 <div class="d-flex gap-3 flex-wrap">
                     <a href="{{ route('login') }}" class="btn-hero-primary text-decoration-none">
