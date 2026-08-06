@@ -539,7 +539,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 border shadow-sm rounded-4 overflow-hidden bg-white d-flex flex-column">
                     @if($umkm->foto)
-                        <img src="{{ asset('storage/' . $umkm->foto) }}" alt="{{ $umkm->nama_usaha }}" style="height: 190px; object-fit: cover;" class="w-100">
+                        <img src="{{ asset('storage/' . ltrim($umkm->foto, '/')) }}" alt="{{ $umkm->nama_usaha }}" style="height: 190px; object-fit: cover;" class="w-100" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name='.urlencode($umkm->nama_usaha).'&background=0d2b5e&color=fff&size=200';">
                     @else
                         <div class="bg-light text-center py-5 text-muted d-flex align-items-center justify-content-center" style="height: 190px;">
                             <i class="fas fa-store fs-1 opacity-25"></i>
@@ -582,9 +582,13 @@
         <div class="row align-items-center g-5">
             <div class="col-lg-5 position-relative">
                 <div class="about-image-wrapper">
-                    <img src="{{ asset('storage/profil/kantor-desa.jpeg') }}" 
-                         alt="Pemandangan Desa" 
-                         class="about-image">
+                    @if($profil && $profil->logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($profil->logo))
+                        <img src="{{ asset('storage/' . ltrim($profil->logo, '/')) }}" alt="Kantor Desa" class="about-image">
+                    @elseif($profil && $profil->map && \Illuminate\Support\Facades\Storage::disk('public')->exists($profil->map))
+                        <img src="{{ asset('storage/' . ltrim($profil->map, '/')) }}" alt="Peta Desa" class="about-image">
+                    @else
+                        <img src="{{ asset('storage/profil/kantor-desa.jpeg') }}" alt="Pemandangan Desa" class="about-image">
+                    @endif
                          
                     <div class="visi-card">
                         <h6 class="fw-bold text-dark mb-2" style="font-size: 0.9rem;">Visi Desa 2024</h6>

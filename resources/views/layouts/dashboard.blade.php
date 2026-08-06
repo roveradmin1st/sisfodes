@@ -30,10 +30,17 @@
     <div class="sidebar p-3 d-flex flex-column" style="width: 280px; background: {{ $config['gradient'] }};">
         <!-- Brand (Desktop) -->
         <div class="d-flex align-items-center mb-4 px-3">
-            <div class="me-2"
-                style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                <i class="fas {{ $config['icon'] }} text-white fs-5"></i>
-            </div>
+            @if(Auth::user()->foto && Storage::disk('public')->exists(Auth::user()->foto))
+                <img src="{{ asset('storage/' . Auth::user()->foto) }}" 
+                     alt="Foto Profil" 
+                     class="me-2 rounded-circle" 
+                     style="width: 40px; height: 40px; object-fit: cover; border: 2px solid rgba(255,255,255,0.3);">
+            @else
+                <div class="me-2"
+                    style="width: 40px; height: 40px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas {{ $config['icon'] }} text-white fs-5"></i>
+                </div>
+            @endif
             <div>
                 <span class="text-white fw-bold d-block" style="font-size: 0.95rem;">Desa Sidomulyo</span>
                 <small class="text-white-50 d-block" style="font-size: 0.7rem; margin-top: -2px;">Kabupaten Deli Serdang</small>

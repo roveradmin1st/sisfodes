@@ -130,7 +130,7 @@
         <div class="col-lg-4 col-md-6">
             <div class="umkm-card h-100 d-flex flex-column">
                 @if($item->foto)
-                    <img src="{{ asset('storage/' . $item->foto) }}" alt="{{ $item->nama_usaha }}" class="umkm-img">
+                    <img src="{{ asset('storage/' . ltrim($item->foto, '/')) }}" alt="{{ $item->nama_usaha }}" class="umkm-img" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name='.urlencode($item->nama_usaha).'&background=0d2b5e&color=fff&size=200';">
                 @else
                     <div class="bg-light text-center py-5 d-flex align-items-center justify-content-center text-muted" style="height: 200px;">
                         <i class="fas fa-store" style="font-size: 3rem; opacity: 0.3;"></i>
