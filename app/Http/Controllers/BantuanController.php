@@ -230,6 +230,43 @@ class BantuanController extends Controller
         return $this->index($request);
     }
 
+    // ==================== CETAK PDF ====================
+    public function cetakPdf(Request $request)
+    {
+        $query = PenerimaBantuan::with('penduduk');
+
+        if ($request->filled('keyword')) {
+            $keyword = trim($request->keyword);
+            $query->where(function($subQuery) use ($keyword) {
+                $subQuery->whereHas('penduduk', function ($q) use ($keyword) {
+                    $q->where('nama', 'LIKE', "%{$keyword}%")
+                      ->orWhere('nik', 'LIKE', "%{$keyword}%")
+                      ->orWhere('no_kk', 'LIKE', "%{$keyword}%")
+                      ->orWhere('alamat', 'LIKE', "%{$keyword}%");
+                })->orWhere('program_bantuan', 'LIKE', "%{$keyword}%")
+                  ->orWhere('keterangan', 'LIKE', "%{$keyword}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Ambil data dan urutkan penerima bantuan sesuai abjad nama warga (A-Z) serta reset indeks array
+        $penerima = $query->get()->sortBy(function ($item) {
+            return strtolower(optional($item->penduduk)->nama ?? '');
+        })->values();
+
+        $profil = \App\Models\ProfilDesa::first();
+        $kepalaDesa = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kepala Desa%')->first();
+        $kaurUmum = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kaur Umum%')->orWhere('jabatan', 'LIKE', '%Kepala Urusan Umum%')->first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('bantuan.cetak_pdf', compact('penerima', 'profil', 'kepalaDesa', 'kaurUmum', 'request'));
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->stream('Laporan_Data_Penerima_Bantuan_Desa_Sidomulyo.pdf');
+    }
+
     // ==================== PENDUDUK (HANYA LIHAT) ====================
     public function pendudukIndex()
     {

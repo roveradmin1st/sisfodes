@@ -92,17 +92,20 @@
 </head>
 <body>
 
-    <!-- KOP SURAT RESMI -->
-    <table class="header-table">
+    <!-- KOP SURAT RESMI DESA SIDOMULYO -->
+    <table class="header-table" style="width: 100%; border-collapse: collapse; border-bottom: 2px solid #000; margin-bottom: 15px; padding-bottom: 6px;">
         <tr>
-            <td style="width: 15%; text-align: center;">
-                <img src="{{ public_path('storage/logo-deli-serdang.png') }}" class="logo" alt="Logo">
+            <td style="width: 12%; text-align: center; vertical-align: middle;">
+                @if(file_exists(public_path('storage/logo-deli-serdang.png')))
+                    <img src="{{ public_path('storage/logo-deli-serdang.png') }}" style="width: 80px; height: auto;" alt="Logo">
+                @endif
             </td>
-            <td style="width: 85%;" class="header-text">
-                <h3>PEMERINTAH KABUPATEN DELI SERDANG</h3>
-                <h3>KECAMATAN BIRU-BIRU</h3>
-                <h2>PEMERINTAH DESA SIDOMULYO</h2>
-                <p>Alamat: Jl. Desa Sidomulyo, Kec. Biru-Biru, Kab. Deli Serdang, Kode Pos 20376</p>
+            <td style="width: 88%; text-align: center; vertical-align: middle; font-family: 'Times New Roman', Times, serif; color: #000;">
+                <div style="font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 1px;">PEMERINTAH KABUPATEN DELI SERDANG</div>
+                <div style="font-size: 14pt; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 1px;">KECAMATAN BIRU-BIRU</div>
+                <div style="font-size: 18pt; font-weight: bold; letter-spacing: 1px; margin-bottom: 2px;">DESA SIDOMULYO</div>
+                <div style="font-size: 10.5pt; margin-bottom: 1px;">Jalan Umum Biru-Biru – Delitua Km. 14 Kode Pos : 20358</div>
+                <div style="font-size: 10.5pt;">Email : <span style="text-decoration: underline; color: #0066cc;">sidomulyobirubiru1207@gmail.com</span></div>
             </td>
         </tr>
     </table>

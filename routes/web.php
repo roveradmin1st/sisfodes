@@ -117,6 +117,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/perangkat/update-all', [PerangkatDesaController::class, 'updateAll'])->name('perangkat.update.all')->middleware('role:kaur_umum');
 
     // ==================== BANTUAN ====================
+    Route::get('/bantuan/cetak-pdf', [BantuanController::class, 'cetakPdf'])->name('bantuan.cetak-pdf')->middleware('role:kaur_umum,kepala_desa');
     Route::get('/bantuan/search-penduduk', [BantuanController::class, 'searchPenduduk'])->name('bantuan.search-penduduk')->middleware('role:kaur_umum,kepala_desa');
     Route::get('/bantuan/filter', [BantuanController::class, 'filter'])->name('bantuan.filter')->middleware('role:kaur_umum,kepala_desa');
     Route::get('/bantuan/create', [BantuanController::class, 'create'])->name('bantuan.create')->middleware('role:kaur_umum');

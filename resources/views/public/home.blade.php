@@ -356,7 +356,7 @@
             </div>
             
             <!-- Berita Desa -->
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="service-card">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="service-icon"><i class="far fa-newspaper"></i></div>
@@ -419,38 +419,6 @@
                 </div>
             </div>
             
-            <!-- UMKM Desa -->
-            <div class="col-md-4">
-                <div class="service-card">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="service-icon"><i class="fas fa-store"></i></div>
-                        <i class="fas fa-store text-light" style="font-size: 3.5rem; opacity: 0.25; color: var(--primary-light);"></i>
-                    </div>
-                    <h4 class="service-title">UMKM Desa</h4>
-                    <p class="service-desc">Dukungan produk unggulan lokal dari pengrajin dan pengusaha desa.</p>
-                    
-                    @if(count($umkmTerbaru) > 0)
-                    <a href="{{ route('public.umkm') }}" class="text-decoration-none text-dark">
-                        <div class="news-snippet" title="Lihat Katalog UMKM Desa">
-                            @if($umkmTerbaru->first()->foto)
-                                <img src="{{ asset('storage/' . $umkmTerbaru->first()->foto) }}" class="news-thumb" alt="Thumb" style="object-fit: cover;">
-                            @else
-                                <div class="news-thumb d-flex align-items-center justify-content-center text-muted"><i class="fas fa-store"></i></div>
-                            @endif
-                            <div>
-                                <h6 class="mb-1 text-success fw-bold" style="font-size: 0.85rem;">{{ Str::limit($umkmTerbaru->first()->nama_usaha, 35) }}</h6>
-                                <small class="text-muted" style="font-size: 0.75rem;">{{ count($umkmTerbaru) }} Produk • <span class="text-primary">Lihat UMKM <i class="fas fa-arrow-right" style="font-size: 0.65rem;"></i></span></small>
-                            </div>
-                        </div>
-                    </a>
-                    @else
-                    <div class="news-snippet justify-content-center text-muted" style="font-size: 0.85rem;">
-                        Belum ada produk UMKM.
-                    </div>
-                    @endif
-                </div>
-            </div>
-            
             <!-- Statistik Desa -->
             <div class="col-md-4">
                 <div class="stat-card">
@@ -508,65 +476,6 @@
                         <small class="text-muted d-block" style="font-size: 0.75rem;">
                             <i class="far fa-calendar-alt me-1 text-primary"></i> {{ optional($galeri->tanggal_posting)->format('d F Y') ?? $galeri->created_at->format('d F Y') }}
                         </small>
-                    </div>
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</section>
-@endif
-
-<!-- ==================== PRODUK UNGGULAN UMKM DESA ==================== -->
-@if(count($umkmTerbaru) > 0)
-<section class="py-5 bg-white border-top">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-2">
-            <div>
-                <span class="badge bg-primary text-uppercase px-3 py-2 rounded-pill mb-2" style="font-size: 0.75rem; background-color: #0d2b5e !important;">Ekonomi Lokal</span>
-                <h3 class="fw-bold text-dark mb-0">UMKM & Produk Unggulan Desa</h3>
-                <p class="text-muted mb-0 small">Produk kreasi kuliner, kerajinan, dan usaha masyarakat Desa {{ $namaDesa }}.</p>
-            </div>
-            <div>
-                <a href="{{ route('public.umkm') }}" class="btn btn-outline-primary rounded-pill px-4" style="font-size: 0.85rem; font-weight: 600; color: #0d2b5e; border-color: #0d2b5e;">
-                    Lihat Semua Produk UMKM <i class="fas fa-arrow-right ms-1"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            @foreach($umkmTerbaru as $umkm)
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 border shadow-sm rounded-4 overflow-hidden bg-white d-flex flex-column">
-                    @if($umkm->foto)
-                        <img src="{{ asset('storage/' . ltrim($umkm->foto, '/')) }}" alt="{{ $umkm->nama_usaha }}" style="height: 190px; object-fit: cover;" class="w-100" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name='.urlencode($umkm->nama_usaha).'&background=0d2b5e&color=fff&size=200';">
-                    @else
-                        <div class="bg-light text-center py-5 text-muted d-flex align-items-center justify-content-center" style="height: 190px;">
-                            <i class="fas fa-store fs-1 opacity-25"></i>
-                        </div>
-                    @endif
-                    <div class="card-body p-3 d-flex flex-column flex-grow-1">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill" style="font-size: 0.7rem;">{{ $umkm->kategori }}</span>
-                            <span class="fw-bold text-primary" style="font-size: 0.85rem;">{{ $umkm->harga ?? '-' }}</span>
-                        </div>
-                        <h6 class="fw-bold text-dark mb-1" style="font-size: 1rem;">
-                            {{ $umkm->nama_usaha }}
-                        </h6>
-                        <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
-                            <i class="fas fa-user-circle me-1 text-primary"></i> Pemilik: {{ $umkm->pemilik }}
-                        </small>
-                        <p class="text-muted small mb-3 flex-grow-1" style="font-size: 0.8rem; line-height: 1.5;">
-                            {{ Str::limit(strip_tags($umkm->deskripsi), 80) }}
-                        </p>
-                        <div class="d-flex gap-2 mt-auto pt-2 border-top">
-                            <a href="{{ route('public.umkm.show', $umkm->id_umkm) }}" class="btn btn-sm btn-outline-dark rounded-pill flex-grow-1 fw-bold" style="font-size: 0.75rem;">Detail Produk</a>
-                            @if($umkm->no_hp)
-                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $umkm->no_hp) }}?text=Halo%20saya%20tertarik%20dengan%20{{ urlencode($umkm->nama_usaha) }}" target="_blank" class="btn btn-sm btn-success rounded-pill px-3 fw-bold" style="font-size: 0.75rem;">
-                                <i class="fab fa-whatsapp me-1"></i> Beli
-                            </a>
-                            @endif
-                        </div>
                     </div>
                 </div>
             </div>

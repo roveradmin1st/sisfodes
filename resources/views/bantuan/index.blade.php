@@ -443,15 +443,20 @@
 </style>
 
 <div class="card shadow-sm">
-    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
         <h5 class="card-title mb-0 fw-bold">
             Daftar Penerima Bantuan
         </h5>
-        @if(Auth::user()->role == 'kaur_umum')
-        <a href="{{ route('bantuan.create') }}" class="btn btn-tambah">
-            + Tambah Penerima Bantuan
-        </a>
-        @endif
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="{{ route('bantuan.cetak-pdf', request()->all()) }}" target="_blank" class="btn btn-danger shadow-sm fw-bold d-inline-flex align-items-center gap-2" style="border-radius: 10px; padding: 7px 18px; font-size: 0.85rem;">
+                <i class="fas fa-file-pdf"></i> Cetak PDF
+            </a>
+            @if(Auth::user()->role == 'kaur_umum')
+            <a href="{{ route('bantuan.create') }}" class="btn btn-tambah">
+                + Tambah Penerima Bantuan
+            </a>
+            @endif
+        </div>
     </div>
     <div class="card-body">
         
@@ -491,9 +496,9 @@
                     @endif
                 </form>
             </div>
-            <div class="col-md-5 text-md-end mt-2 mt-md-0 d-flex align-items-center justify-content-md-end justify-content-between gap-2">
+            <div class="col-md-5 text-md-end mt-2 mt-md-0 d-flex align-items-center justify-content-md-end justify-content-between gap-2 flex-wrap">
                 <a href="{{ route('public.bantuan') }}" target="_blank" class="btn btn-lihat-public">
-                    Lihat Daftar Penerima Bantuan
+                    Lihat Publik
                 </a>
                 <span class="badge badge-total">{{ $penerima->total() }} Total</span>
             </div>
