@@ -53,11 +53,37 @@ class AuthController extends Controller
         return view('auth.register');
     }
 
+    public function checkNik(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nik' => 'required|string|size:16',
+            'no_kk' => 'required|string|size:16',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => 'Format NIK atau NKK tidak valid.']);
+        }
+
+        // Cek apakah sudah punya akun
+        $userExists = User::where('nik', $request->nik)->exists();
+        if ($userExists) {
+            return response()->json(['success' => false, 'message' => 'Akun dengan NIK tersebut sudah terdaftar!']);
+        }
+
+        // Cek kesesuaian di tabel penduduk master
+        $penduduk = Penduduk::where('nik', $request->nik)->where('no_kk', $request->no_kk)->first();
+        if ($penduduk) {
+            return response()->json(['success' => true, 'nama' => $penduduk->nama]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Data tidak ditemukan! Pastikan NIK dan NKK sesuai dengan Kartu Keluarga Anda.']);
+    }
+
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'nik' => 'required|string|size:16|unique:users,nik',
-            'nama' => 'required|string|max:100',
+            'no_kk' => 'required|string|size:16',
             'username' => 'required|string|max:50|unique:users,username',
             'password' => 'required|string|min:8',
         ]);
@@ -66,35 +92,24 @@ class AuthController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
+        // Verifikasi ganda NIK dan NKK ke database kependudukan
+        $penduduk = Penduduk::where('nik', $request->nik)->where('no_kk', $request->no_kk)->first();
+        
+        if (!$penduduk) {
+            return back()->with('error', 'Registrasi ditolak! NIK dan Nomor KK tidak cocok atau tidak terdaftar di database Desa Sidomulyo.')->withInput();
+        }
+
         $user = User::create([
             'nik' => $request->nik,
-            'nama' => $request->nama,
+            'nama' => $penduduk->nama, // Paksa gunakan nama asli dari database
             'username' => $request->username,
-            'email' => $request->email ?? $request->username.'@gmail.com',
+            'email' => $request->username.'@gmail.com',
             'password' => Hash::make($request->password),
             'role' => 'penduduk',
             'status' => 'aktif',
         ]);
 
-        // Cek apakah data penduduk sudah ada
-        $penduduk = Penduduk::where('nik', $request->nik)->first();
-        
-        if (!$penduduk) {
-            Penduduk::create([
-                'nik' => $request->nik,
-                'nama' => $request->nama,
-                'email' => $request->email ?? '-',
-                'alamat' => '-',
-                'no_kk' => '-',
-                'tempat_lahir' => '-',
-                'tanggal_lahir' => now(),
-                'jenis_kelamin' => 'L',
-                'agama' => '-',
-                'status_penduduk' => 'tetap',
-            ]);
-        }
-
-        return redirect()->route('login')->with('success', 'Registrasi berhasil! Silakan login.');
+        return redirect()->route('login')->with('success', 'Aktivasi akun berhasil! Silakan login.');
     }
 
     public function logout(Request $request)

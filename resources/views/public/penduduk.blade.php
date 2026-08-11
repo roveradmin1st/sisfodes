@@ -5,6 +5,81 @@
 @section('public-content')
 <div class="container py-5">
     
+    <!-- Searchable Table Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 pb-3 d-flex flex-column align-items-center text-center">
+                    <h4 class="fw-bold text-success mb-2">Cek Data Penduduk</h4>
+                    <p class="text-muted mb-4">Masukkan 16 digit NIK Anda untuk memverifikasi data kependudukan secara detail.</p>
+                    <form action="{{ route('public.penduduk') }}" method="GET" class="w-100" style="max-width: 600px;">
+                        @if(request('dusun'))
+                            <input type="hidden" name="dusun" value="{{ request('dusun') }}">
+                        @endif
+                        <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden">
+                            <input type="text" name="search" class="form-control border-0 px-4" placeholder="Masukkan 16 Digit NIK..." value="{{ $search }}" maxlength="16" required>
+                            <button type="submit" class="btn btn-success px-4 fw-bold">Cari Data</button>
+                        </div>
+                    </form>
+                </div>
+                
+                @if($search)
+                <div class="card-body bg-light mt-2 rounded-bottom">
+                    @if($searchedPenduduk)
+                        <div class="p-4 bg-white rounded-3 shadow-sm border-start border-4 border-success">
+                            <h5 class="fw-bold mb-4 border-bottom pb-2">Informasi Detail Penduduk</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Nomor Induk Kependudukan (NIK)</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->nik }}</span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Nomor Kartu Keluarga (KK)</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->no_kk }}</span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Nama Lengkap</small>
+                                    <span class="fw-bold fs-6 text-uppercase">{{ $searchedPenduduk->nama }}</span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Tempat, Tanggal Lahir</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->tempat_lahir }}, {{ \Carbon\Carbon::parse($searchedPenduduk->tanggal_lahir)->format('d F Y') }}</span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Jenis Kelamin</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->jenis_kelamin == 'L' ? 'Laki-Laki' : 'Perempuan' }}</span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Agama</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->agama }}</span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Status Perkawinan</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->status_perkawinan }}</span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Pekerjaan</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->pekerjaan }}</span>
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <small class="text-muted d-block">Alamat Lengkap</small>
+                                    <span class="fw-bold fs-6">{{ $searchedPenduduk->alamat }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="text-center py-5">
+                            <div class="text-danger mb-3"><i class="fas fa-exclamation-circle fa-4x opacity-50"></i></div>
+                            <h5 class="fw-bold text-dark">Data Tidak Ditemukan!</h5>
+                            <p class="text-muted mb-0">NIK <strong>{{ $search }}</strong> tidak terdaftar dalam database kependudukan Desa Sidomulyo.</p>
+                        </div>
+                    @endif
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
     <div class="mb-5 border-bottom pb-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div>
             <h3 class="fw-bold text-dark text-uppercase mb-0">Statistik Data Penduduk</h3>

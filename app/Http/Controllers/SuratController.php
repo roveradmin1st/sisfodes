@@ -280,4 +280,30 @@ class SuratController extends Controller
         return redirect()->route('surat.permohonan.index')
             ->with('success', 'Pengajuan surat berhasil dihapus.');
     }
+    public function laporanIndex(Request $request)
+    {
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
+
+        $jenisSurat = JenisSurat::all();
+        
+        $laporan = [];
+        foreach ($jenisSurat as $jenis) {
+            $permohonan = PermohonanSurat::where('id_jenis_surat', $jenis->id_jenis_surat)
+                ->whereMonth('tanggal_pengajuan', $bulan)
+                ->whereYear('tanggal_pengajuan', $tahun)
+                ->get();
+
+            $total = $permohonan->count();
+            $laporan[] = [
+                'nama_surat' => $jenis->nama_surat,
+                'total' => $total,
+                'diproses' => $permohonan->whereIn('status_permohonan', ['menunggu', 'diproses'])->count(),
+                'selesai' => $permohonan->where('status_permohonan', 'selesai')->count(),
+                'ditolak' => $permohonan->where('status_permohonan', 'ditolak')->count(),
+            ];
+        }
+
+        return view('surat.laporan.index', compact('laporan', 'bulan', 'tahun'));
+    }
 }

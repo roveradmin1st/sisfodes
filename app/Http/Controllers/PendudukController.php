@@ -11,6 +11,7 @@ class PendudukController extends Controller
     public function publicIndex(Request $request)
     {
         $selectedDusun = $request->get('dusun');
+        $search = $request->get('search');
 
         // Clean up and get all unique dusun for the filter dropdown
         $allDusunRaw = Penduduk::select('dusun')->distinct()->pluck('dusun')->toArray();
@@ -140,10 +141,16 @@ class PendudukController extends Controller
         // Group others if necessary
         $pekerjaanData = $pekerjaanDataRaw;
 
+        // 6. Data List for Searchable Table
+        $searchedPenduduk = null;
+        if ($search) {
+            $searchedPenduduk = Penduduk::where('nik', $search)->first();
+        }
+
         return view('public.penduduk', compact(
             'genderData', 'dusunData', 'agamaData', 
             'pendidikanData', 'pekerjaanData',
-            'allDusun', 'selectedDusun'
+            'allDusun', 'selectedDusun', 'searchedPenduduk', 'search'
         ));
     }
 

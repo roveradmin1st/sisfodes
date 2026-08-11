@@ -493,88 +493,88 @@
                         <form method="POST" action="{{ route('register') }}">
                             @csrf
 
-                            <!-- NIK -->
-                            <div class="mb-3">
-                                <label for="nik" class="form-label">
-                                    <i class="fas fa-id-card me-1" style="color: #1a472a;"></i>
-                                    NIK
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-id-card"></i>
-                                    </span>
-                                    <input type="text" class="form-control @error('nik') is-invalid @enderror" id="nik"
-                                        name="nik" value="{{ old('nik') }}" placeholder="Masukkan 16 digit NIK" required
-                                        maxlength="16">
+                            <!-- Bagian 1: Verifikasi Data (Terlihat Awal) -->
+                            <div id="step-1-verification">
+                                <!-- NIK -->
+                                <div class="mb-3">
+                                    <label for="nik" class="form-label">
+                                        <i class="fas fa-id-card me-1" style="color: #1a472a;"></i>
+                                        NIK
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                                        <input type="text" class="form-control" id="nik" name="nik" placeholder="Masukkan 16 digit NIK" required maxlength="16">
+                                    </div>
                                 </div>
-                                @error('nik')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
+
+                                <!-- NKK -->
+                                <div class="mb-4">
+                                    <label for="no_kk" class="form-label">
+                                        <i class="fas fa-users me-1" style="color: #1a472a;"></i>
+                                        Nomor Kartu Keluarga (NKK)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-users"></i></span>
+                                        <input type="text" class="form-control" id="no_kk" name="no_kk" placeholder="Masukkan 16 digit NKK" required maxlength="16">
+                                    </div>
+                                </div>
+
+                                <button type="button" id="btn-check-data" class="btn btn-register">
+                                    <i class="fas fa-search me-2"></i>Cek Data Kependudukan
+                                </button>
                             </div>
 
-                            <!-- Nama Lengkap -->
-                            <div class="mb-3">
-                                <label for="nama" class="form-label">
-                                    <i class="fas fa-user me-1" style="color: #1a472a;"></i>
-                                    Nama Lengkap
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user"></i>
-                                    </span>
-                                    <input type="text" class="form-control @error('nama') is-invalid @enderror" id="nama"
-                                        name="nama" value="{{ old('nama') }}" placeholder="Masukkan nama lengkap" required>
+                            <!-- Bagian 2: Pembuatan Akun (Disembunyikan Awal) -->
+                            <div id="step-2-account" style="display: none;">
+                                
+                                <div class="alert alert-success mb-3 pb-2 pt-2">
+                                    <i class="fas fa-check-circle me-1"></i> Data ditemukan! Silakan buat akun Anda.
                                 </div>
-                                @error('nama')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
 
-                            <!-- Username -->
-                            <div class="mb-3">
-                                <label for="username" class="form-label">
-                                    <i class="fas fa-user-tag me-1" style="color: #1a472a;"></i>
-                                    Username
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-user-tag"></i>
-                                    </span>
-                                    <input type="text" class="form-control @error('username') is-invalid @enderror"
-                                        id="username" name="username" value="{{ old('username') }}"
-                                        placeholder="Masukkan username" required>
+                                <!-- Nama Lengkap (Read-only) -->
+                                <div class="mb-3">
+                                    <label for="nama" class="form-label">
+                                        <i class="fas fa-user me-1" style="color: #1a472a;"></i>
+                                        Nama Lengkap (Sesuai KTP)
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" class="form-control" id="nama" name="nama" readonly style="background-color: #e9ecef; color:#6c757d; font-weight:bold;">
+                                    </div>
                                 </div>
-                                @error('username')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                            </div>
 
-                            <!-- Password -->
-                            <div class="mb-4">
-                                <label for="password" class="form-label">
-                                    <i class="fas fa-lock me-1" style="color: #1a472a;"></i>
-                                    Password
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-key"></i>
-                                    </span>
-                                    <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                        id="password" name="password" placeholder="Masukkan password (min. 8 karakter)"
-                                        required>
+                                <!-- Username -->
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">
+                                        <i class="fas fa-user-tag me-1" style="color: #1a472a;"></i>
+                                        Username Baru
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                        <input type="text" class="form-control" id="username" name="username" placeholder="Buat username login" required>
+                                    </div>
                                 </div>
-                                @error('password')
-                                    <div class="text-danger small mt-1">{{ $message }}</div>
-                                @enderror
-                                <small class="text-muted" style="font-size: 0.75rem;">
-                                    <i class="fas fa-info-circle me-1"></i>Password minimal 8 karakter
-                                </small>
-                            </div>
 
-                            <!-- Register Button -->
-                            <button type="submit" class="btn btn-register">
-                                <i class="fas fa-user-plus me-2"></i>Daftar
-                            </button>
+                                <!-- Password -->
+                                <div class="mb-4">
+                                    <label for="password" class="form-label">
+                                        <i class="fas fa-lock me-1" style="color: #1a472a;"></i>
+                                        Password Baru
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="Minimal 8 karakter" required>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-register">
+                                    <i class="fas fa-user-check me-2"></i>Aktivasi Akun Sekarang
+                                </button>
+                                
+                                <button type="button" id="btn-back" class="btn btn-light w-100 mt-3" style="border-radius: 12px; font-weight: 600; padding: 12px; border: 2px solid #e9ecef; color: #6c757d;">
+                                    <i class="fas fa-arrow-left me-1"></i> Kembali ke Cek Data
+                                </button>
+                            </div>
 
                         </form>
                     </div>
@@ -600,5 +600,86 @@
             </div>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            $('#btn-check-data').click(function() {
+                let nik = $('#nik').val();
+                let no_kk = $('#no_kk').val();
+                
+                if(nik.length !== 16 || no_kk.length !== 16) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Format Salah',
+                        text: 'Pastikan NIK dan NKK Anda berjumlah tepat 16 digit!',
+                        confirmButtonColor: '#1a472a'
+                    });
+                    return;
+                }
+                
+                let btn = $(this);
+                let originalText = btn.html();
+                btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Mengecek Data...');
+                btn.prop('disabled', true);
+                
+                $.ajax({
+                    url: "{{ route('check-nik') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        nik: nik,
+                        no_kk: no_kk
+                    },
+                    success: function(response) {
+                        btn.html(originalText);
+                        btn.prop('disabled', false);
+                        
+                        if(response.success) {
+                            $('#nama').val(response.nama);
+                            $('#nik').prop('readonly', true);
+                            $('#no_kk').prop('readonly', true);
+                            $('#step-1-verification').slideUp();
+                            $('#step-2-account').slideDown();
+                            
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Data Ditemukan',
+                                text: 'Halo ' + response.nama + ', silakan buat Username dan Password Anda.',
+                                confirmButtonColor: '#1a472a',
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Verifikasi Gagal',
+                                text: response.message,
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    },
+                    error: function() {
+                        btn.html(originalText);
+                        btn.prop('disabled', false);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Terjadi Kesalahan',
+                            text: 'Sistem sedang sibuk. Silakan coba beberapa saat lagi.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                });
+            });
+            
+            $('#btn-back').click(function() {
+                $('#nik').prop('readonly', false);
+                $('#no_kk').prop('readonly', false);
+                $('#step-2-account').slideUp();
+                $('#step-1-verification').slideDown();
+            });
+        });
+    </script>
 
 @endsection

@@ -172,10 +172,11 @@
                     <a class="nav-link {{ request()->routeIs('public.perangkat') ? 'active' : '' }}" href="{{ route('public.perangkat') }}">Perangkat Desa</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {{ request()->routeIs(['public.informasi', 'public.bantuan', 'public.apbdesa']) ? 'active' : '' }}" href="#" id="informasiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle {{ request()->routeIs(['public.informasi', 'public.bantuan', 'public.apbdesa', 'public.umkm', 'public.penduduk']) ? 'active' : '' }}" href="#" id="informasiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Informasi Desa
                     </a>
                     <ul class="dropdown-menu border-0 shadow" aria-labelledby="informasiDropdown">
+                        <li><a class="dropdown-item" href="{{ route('public.penduduk') }}">Data Penduduk</a></li>
                         <li><a class="dropdown-item" href="{{ route('public.informasi') }}">Berita</a></li>
                         <li><a class="dropdown-item" href="{{ route('public.bantuan') }}">Info Bantuan</a></li>
                         <li><a class="dropdown-item" href="{{ route('public.apbdesa') }}">Transparansi APBDes</a></li>

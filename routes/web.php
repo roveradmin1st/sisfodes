@@ -40,6 +40,7 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/check-nik', [AuthController::class, 'checkNik'])->name('check-nik');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // ==================== RESET PASSWORD ROUTES ====================
@@ -87,6 +88,7 @@ Route::middleware(['auth'])->group(function () {
         });
 
         Route::get('/permohonan', [SuratController::class, 'permohonanIndex'])->name('permohonan.index');
+        Route::get('/laporan', [SuratController::class, 'laporanIndex'])->name('laporan.index')->middleware('role:kaur_umum,kepala_desa');
         Route::get('/permohonan/create', [SuratController::class, 'permohonanCreate'])->name('permohonan.create')->middleware('role:penduduk');
         Route::post('/permohonan', [SuratController::class, 'permohonanStore'])->name('permohonan.store')->middleware('role:penduduk');
         Route::get('/permohonan/{id}', [SuratController::class, 'permohonanShow'])->name('permohonan.show');

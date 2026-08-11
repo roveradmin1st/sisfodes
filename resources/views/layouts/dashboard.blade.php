@@ -70,6 +70,9 @@
                 <a href="{{ route('surat.permohonan.index') }}"
                     class="nav-link {{ request()->routeIs('surat.permohonan.*') ? 'active' : '' }}"
                     style="{{ request()->routeIs('surat.permohonan.*') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Pengajuan Surat</a>
+                <a href="{{ route('surat.laporan.index') }}"
+                    class="nav-link {{ request()->routeIs('surat.laporan.index') ? 'active' : '' }}"
+                    style="{{ request()->routeIs('surat.laporan.index') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Laporan Surat</a>
                 <a href="{{ route('bantuan.index') }}" class="nav-link {{ request()->routeIs('bantuan.*') ? 'active' : '' }}"
                     style="{{ request()->routeIs('bantuan.*') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Data Bantuan</a>
                 <a href="{{ route('umkm.index') }}" class="nav-link {{ request()->routeIs('umkm.*') ? 'active' : '' }}"
@@ -92,6 +95,9 @@
                 <a href="{{ route('surat.permohonan.index') }}"
                     class="nav-link {{ request()->routeIs('surat.permohonan.*') ? 'active' : '' }}"
                     style="{{ request()->routeIs('surat.permohonan.*') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Pengajuan Surat</a>
+                <a href="{{ route('surat.laporan.index') }}"
+                    class="nav-link {{ request()->routeIs('surat.laporan.index') ? 'active' : '' }}"
+                    style="{{ request()->routeIs('surat.laporan.index') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Laporan Surat</a>
                 <a href="{{ route('bantuan.index') }}" class="nav-link {{ request()->routeIs('bantuan.*') ? 'active' : '' }}"
                     style="{{ request()->routeIs('bantuan.*') ? 'background: ' . $config['active_bg'] . '; color: #fff;' : '' }}">Data Bantuan</a>
                 <a href="{{ route('kritik-saran.index') }}"
