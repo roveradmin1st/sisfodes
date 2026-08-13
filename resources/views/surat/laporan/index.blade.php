@@ -246,9 +246,11 @@
         <h5 class="card-title mb-0 fw-bold">
             Rekapan Laporan (Bulan {{ $months[$bulan] }} {{ $tahun }})
         </h5>
-        <button onclick="window.print()" class="btn btn-cetak d-print-none">
-            <i class="fas fa-print me-1"></i> Cetak PDF
-        </button>
+        <a href="{{ route('surat.laporan.cetak-pdf', ['bulan' => $bulan, 'tahun' => $tahun]) }}"
+           target="_blank"
+           class="btn btn-cetak d-print-none">
+            <i class="fas fa-file-pdf me-1"></i> Unduh PDF
+        </a>
     </div>
     <div class="card-body position-relative">
         

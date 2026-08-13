@@ -89,6 +89,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/permohonan', [SuratController::class, 'permohonanIndex'])->name('permohonan.index');
         Route::get('/laporan', [SuratController::class, 'laporanIndex'])->name('laporan.index')->middleware('role:kaur_umum,kepala_desa');
+        Route::get('/laporan/cetak-pdf', [SuratController::class, 'laporanCetakPdf'])->name('laporan.cetak-pdf')->middleware('role:kaur_umum,kepala_desa');
         Route::get('/permohonan/create', [SuratController::class, 'permohonanCreate'])->name('permohonan.create')->middleware('role:penduduk');
         Route::post('/permohonan', [SuratController::class, 'permohonanStore'])->name('permohonan.store')->middleware('role:penduduk');
         Route::get('/permohonan/{id}', [SuratController::class, 'permohonanShow'])->name('permohonan.show');

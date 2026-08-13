@@ -306,4 +306,48 @@ class SuratController extends Controller
 
         return view('surat.laporan.index', compact('laporan', 'bulan', 'tahun'));
     }
+
+    public function laporanCetakPdf(Request $request)
+    {
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
+
+        $months = [
+            '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
+            '04' => 'April',   '05' => 'Mei',       '06' => 'Juni',
+            '07' => 'Juli',    '08' => 'Agustus',   '09' => 'September',
+            '10' => 'Oktober', '11' => 'November',  '12' => 'Desember',
+        ];
+        $namaBulan = $months[$bulan] ?? $bulan;
+
+        $jenisSurat = JenisSurat::all();
+        $laporan = [];
+        foreach ($jenisSurat as $jenis) {
+            $permohonan = PermohonanSurat::where('id_jenis_surat', $jenis->id_jenis_surat)
+                ->whereMonth('tanggal_pengajuan', $bulan)
+                ->whereYear('tanggal_pengajuan', $tahun)
+                ->get();
+
+            $laporan[] = [
+                'nama_surat' => $jenis->nama_surat,
+                'total'      => $permohonan->count(),
+                'diproses'   => $permohonan->whereIn('status_permohonan', ['menunggu', 'diproses'])->count(),
+                'selesai'    => $permohonan->where('status_permohonan', 'selesai')->count(),
+                'ditolak'    => $permohonan->where('status_permohonan', 'ditolak')->count(),
+            ];
+        }
+
+        $profil     = \App\Models\ProfilDesa::first();
+        $kepalaDesa = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kepala Desa%')->first();
+        $kaurUmum   = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kaur Umum%')
+                        ->orWhere('jabatan', 'LIKE', '%Kepala Urusan Umum%')->first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('surat.laporan.cetak_pdf', compact(
+            'laporan', 'bulan', 'namaBulan', 'tahun', 'profil', 'kepalaDesa', 'kaurUmum'
+        ));
+        $pdf->setPaper('A4', 'portrait');
+
+        $filename = 'Laporan_Surat_Keterangan_' . $namaBulan . '_' . $tahun . '.pdf';
+        return $pdf->stream($filename);
+    }
 }
