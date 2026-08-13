@@ -186,10 +186,10 @@ class SuratController extends Controller
 
     public function permohonanVerifikasi(Request $request, $id)
     {
-        $permohonan = PermohonanSurat::findOrFail($id);
+        $permohonan = PermohonanSurat::with('jenisSurat')->findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:menunggu,diproses,selesai,ditolak',
+            'status'  => 'required|in:menunggu,diproses,selesai,ditolak',
             'catatan' => 'nullable|string',
         ]);
 
@@ -197,10 +197,31 @@ class SuratController extends Controller
             return back()->withErrors($validator);
         }
 
+        // Auto-generate nomor surat jika status diubah ke "selesai" dan nomor belum ada
+        $nomorSurat = $request->nomor_surat;
+
+        if ($request->status === 'selesai' && empty($nomorSurat)) {
+            $tahun     = now()->year;
+            $bulanRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][now()->month - 1];
+
+            // Kode jenis surat: ambil huruf kapital dari setiap kata
+            $namaJenis = $permohonan->jenisSurat->nama_surat ?? 'SK';
+            $words     = preg_split('/\s+/', $namaJenis);
+            $kode      = implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), $words));
+            $kode      = substr($kode, 0, 5); // maks 5 karakter
+
+            // Urutan: hitung surat selesai tahun ini + 1
+            $urutan = PermohonanSurat::where('status_permohonan', 'selesai')
+                ->whereYear('updated_at', $tahun)
+                ->count() + 1;
+
+            $nomorSurat = sprintf('%03d', $urutan) . '/' . $kode . '/DS/' . $bulanRomawi . '/' . $tahun;
+        }
+
         $permohonan->update([
             'status_permohonan' => $request->status,
             'catatan'           => $request->catatan,
-            'nomor_surat'       => $request->nomor_surat,
+            'nomor_surat'       => $nomorSurat,
         ]);
 
         return redirect()->back()
