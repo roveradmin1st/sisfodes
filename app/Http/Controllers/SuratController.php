@@ -204,9 +204,10 @@ class SuratController extends Controller
             $tahun     = now()->year;
             $bulanRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][now()->month - 1];
 
-            // Kode jenis surat: ambil huruf kapital dari setiap kata
+            // Kode jenis surat: ambil huruf kapital dari setiap kata (abaikan tanda baca)
             $namaJenis = $permohonan->jenisSurat->nama_surat ?? 'SK';
-            $words     = preg_split('/\s+/', $namaJenis);
+            $words     = preg_split('/[\s\/\(\)\-]+/', $namaJenis);
+            $words     = array_filter($words);
             $kode      = implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), $words));
             $kode      = substr($kode, 0, 5); // maks 5 karakter
 
