@@ -404,7 +404,7 @@
                 @if(Auth::user()->role == 'kaur_umum')
                     <form method="POST" action="{{ route('surat.permohonan.verifikasi', $permohonan->id_permohonan) }}" class="row g-3">
                         @csrf
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <select class="form-select" name="status" required>
                                 <option value="">Ubah Status</option>
                                 <option value="diproses" {{ $permohonan->status_permohonan == 'diproses' ? 'selected' : '' }}>Diproses</option>
@@ -412,11 +412,16 @@
                                 <option value="ditolak" {{ $permohonan->status_permohonan == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                             </select>
                         </div>
-                        <div class="col-md-5">
-                            <input type="text" class="form-control" name="catatan" placeholder="Catatan (opsional)" value="{{ old('catatan') }}">
-                        </div>
                         <div class="col-md-3">
-                            <button type="submit" class="btn-action btn-update w-100">Update Status</button>
+                            <input type="text" class="form-control" name="nomor_surat"
+                                placeholder="Nomor Surat (cth: 001/SKH/DS/F/2026)"
+                                value="{{ old('nomor_surat', $permohonan->nomor_surat) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="catatan" placeholder="Catatan (opsional)" value="{{ old('catatan', $permohonan->catatan) }}">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn-action btn-update w-100">Update</button>
                         </div>
                     </form>
                 @endif
