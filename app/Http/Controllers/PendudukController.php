@@ -154,21 +154,133 @@ class PendudukController extends Controller
         ));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $penduduk = Penduduk::latest()->paginate(10);
-        $totalPenduduk = Penduduk::count();
-        $kepalaKeluarga = Penduduk::where('is_kepala_keluarga', 1)->count();
-        $pendudukBaru = Penduduk::whereMonth('created_at', now()->month)->count();
-        $pendudukLansia = Penduduk::where('tanggal_lahir', '<=', now()->subYears(60))->count();
+        $query = Penduduk::query();
+
+        // Filter Keyword
+        if ($request->filled('keyword')) {
+            $keyword = trim($request->keyword);
+            $query->where(function($q) use ($keyword) {
+                $q->where('nik', 'LIKE', "%{$keyword}%")
+                  ->orWhere('nama', 'LIKE', "%{$keyword}%")
+                  ->orWhere('no_kk', 'LIKE', "%{$keyword}%")
+                  ->orWhere('alamat', 'LIKE', "%{$keyword}%");
+            });
+        }
+
+        // Filter Tahun Update Data
+        if ($request->filled('tahun')) {
+            $tahun = $request->tahun;
+            $query->where(function($q) use ($tahun) {
+                $q->where('tahun', $tahun)
+                  ->orWhereYear('created_at', $tahun);
+            });
+        }
+
+        // Filter Dusun
+        if ($request->filled('dusun')) {
+            $dusun = $request->dusun;
+            $query->where('dusun', 'LIKE', "%{$dusun}%");
+        }
+
+        // Filter Jenis Kelamin
+        if ($request->filled('jenis_kelamin')) {
+            $query->where('jenis_kelamin', $request->jenis_kelamin);
+        }
+
+        $penduduk = $query->latest()->paginate(10)->appends($request->all());
+
+        $totalPenduduk = (clone $query)->count();
+        $kepalaKeluarga = (clone $query)->where('is_kepala_keluarga', 1)->count();
+        $pendudukBaru = (clone $query)->whereMonth('created_at', now()->month)->count();
+        $pendudukLansia = (clone $query)->where('tanggal_lahir', '<=', now()->subYears(60))->count();
+
+        // Ambil daftar tahun unik dari database
+        $daftarTahun = Penduduk::selectRaw('tahun')
+            ->whereNotNull('tahun')
+            ->groupBy('tahun')
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+
+        if (empty($daftarTahun)) {
+            $daftarTahun = [2026, 2025];
+        }
+
+        // Daftar Dusun untuk dropdown filter
+        $daftarDusun = Penduduk::select('dusun')
+            ->whereNotNull('dusun')
+            ->distinct()
+            ->orderBy('dusun', 'asc')
+            ->pluck('dusun')
+            ->toArray();
 
         return view('penduduk.index', compact(
             'penduduk',
             'totalPenduduk',
             'kepalaKeluarga',
             'pendudukBaru',
-            'pendudukLansia'
+            'pendudukLansia',
+            'daftarTahun',
+            'daftarDusun'
         ));
+    }
+
+    public function cetakPdf(Request $request)
+    {
+        $tahunSelected = $request->get('tahun');
+
+        // Query rekapitulasi per tahun inputan (2025, 2026, dst)
+        $query = Penduduk::selectRaw("
+            COALESCE(tahun, YEAR(created_at), 2025) as tahun_rekap,
+            COUNT(*) as total_penduduk,
+            SUM(CASE WHEN jenis_kelamin = 'L' THEN 1 ELSE 0 END) as total_l,
+            SUM(CASE WHEN jenis_kelamin = 'P' THEN 1 ELSE 0 END) as total_p,
+            SUM(CASE WHEN is_kepala_keluarga = 1 AND jenis_kelamin = 'L' THEN 1 ELSE 0 END) as kk_l,
+            SUM(CASE WHEN is_kepala_keluarga = 1 AND jenis_kelamin = 'P' THEN 1 ELSE 0 END) as kk_p,
+            SUM(CASE WHEN is_kepala_keluarga = 1 THEN 1 ELSE 0 END) as total_kk
+        ")
+        ->groupByRaw("COALESCE(tahun, YEAR(created_at), 2025)")
+        ->orderByRaw("COALESCE(tahun, YEAR(created_at), 2025) ASC");
+
+        if ($tahunSelected) {
+            $query->havingRaw("tahun_rekap = ?", [$tahunSelected]);
+        }
+
+        $rekapDataRaw = $query->get();
+
+        $rekapData = $rekapDataRaw->map(function($item) {
+            $item->tahun = $item->tahun_rekap;
+            return $item;
+        });
+
+        // Hitung Grand Total Rangkuman Seluruh Tahun
+        $grandTotal = (object) [
+            'total_penduduk' => $rekapData->sum('total_penduduk'),
+            'total_l' => $rekapData->sum('total_l'),
+            'total_p' => $rekapData->sum('total_p'),
+            'kk_l' => $rekapData->sum('kk_l'),
+            'kk_p' => $rekapData->sum('kk_p'),
+            'total_kk' => $rekapData->sum('total_kk'),
+        ];
+
+        $profil = \App\Models\ProfilDesa::first();
+        $kepalaDesa = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kepala Desa%')->first();
+        $kaurUmum = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kaur Umum%')->orWhere('jabatan', 'LIKE', '%Kepala Urusan Umum%')->first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('penduduk.cetak_pdf', compact(
+            'rekapData', 'grandTotal', 'profil', 'kepalaDesa', 'kaurUmum', 'tahunSelected'
+        ));
+
+        $pdf->setPaper('A4', 'portrait');
+
+        return $pdf->stream('Laporan_Rekapitulasi_Data_Penduduk_Desa_Sidomulyo.pdf');
+    }
+
+    public function search(Request $request)
+    {
+        return $this->index($request);
     }
 
     public function create()
@@ -190,6 +302,7 @@ class PendudukController extends Controller
             'alamat' => 'required|string',
             'status_penduduk' => 'required|in:tetap,sementara',
             'is_kepala_keluarga' => 'nullable|boolean',
+            'tahun' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -199,6 +312,7 @@ class PendudukController extends Controller
         $data = $request->all();
         $data['kewarganegaraan'] = $request->kewarganegaraan ?: 'WNI';
         $data['is_kepala_keluarga'] = $request->has('is_kepala_keluarga') ? 1 : 0;
+        $data['tahun'] = $request->tahun ?: date('Y');
 
         Penduduk::create($data);
 
@@ -266,29 +380,5 @@ class PendudukController extends Controller
 
         return redirect()->route('penduduk.index')
             ->with('success', 'Data penduduk beserta akun login (jika ada) berhasil dihapus.');
-    }
-
-    public function search(Request $request)
-    {
-        $keyword = $request->get('keyword');
-
-        $penduduk = Penduduk::where('nik', 'LIKE', "%{$keyword}%")
-            ->orWhere('nama', 'LIKE', "%{$keyword}%")
-            ->orWhere('no_kk', 'LIKE', "%{$keyword}%")
-            ->orWhere('alamat', 'LIKE', "%{$keyword}%")
-            ->paginate(10);
-
-        $totalPenduduk = Penduduk::count();
-        $kepalaKeluarga = Penduduk::where('is_kepala_keluarga', 1)->count();
-        $pendudukBaru = Penduduk::whereMonth('created_at', now()->month)->count();
-        $pendudukLansia = Penduduk::where('tanggal_lahir', '<=', now()->subYears(60))->count();
-
-        return view('penduduk.index', compact(
-            'penduduk',
-            'totalPenduduk',
-            'kepalaKeluarga',
-            'pendudukBaru',
-            'pendudukLansia'
-        ));
     }
 }

@@ -15,7 +15,7 @@ class PendudukExcelSeeder extends Seeder
         ini_set('memory_limit', '-1'); // Bypass memory limit for huge excel parsing
         $this->command->info('Membaca file Excel Master Penduduk...');
         
-        $filePath = 'D:\Projects\skripsi_4\DATA SIDOMULYO\Data Penduduk Desa Sidomulyo Tahun 2025.xls';
+        $filePath = 'D:\projek 2026\Data Penduduk Desa Sidomulyo Tahun 2025.xls';
         if (!file_exists($filePath)) {
             $this->command->error("File Excel tidak ditemukan di: $filePath");
             return;

@@ -301,14 +301,49 @@ class BantuanController extends Controller
     }
 
     // ==================== FRONTEND (PUBLIC) ====================
-    public function publicIndex()
+    public function publicIndex(Request $request)
     {
-        // Tampilkan penerima bantuan dengan status diterima dan diproses di dashboard depan
-        $penerima = PenerimaBantuan::with('penduduk')
-            ->whereIn('status', ['diterima', 'diproses'])
-            ->latest()
-            ->paginate(15);
+        $query = PenerimaBantuan::with('penduduk')
+            ->whereIn('status', ['diterima', 'diproses']);
 
-        return view('public.bantuan', compact('penerima'));
+        // Filter Pencarian Nama / NIK / Alamat
+        if ($request->filled('keyword')) {
+            $keyword = trim($request->keyword);
+            $query->where(function($subQuery) use ($keyword) {
+                $subQuery->whereHas('penduduk', function ($q) use ($keyword) {
+                    $q->where('nama', 'LIKE', "%{$keyword}%")
+                      ->orWhere('nik', 'LIKE', "%{$keyword}%")
+                      ->orWhere('alamat', 'LIKE', "%{$keyword}%");
+                })->orWhere('program_bantuan', 'LIKE', "%{$keyword}%");
+            });
+        }
+
+        // Jika tahun dipilih, filter berdasarkan tahun. Jika belum dipilih, data diset kosong secara default.
+        if ($request->filled('tahun')) {
+            $tahun = $request->tahun;
+            $query->where(function($q) use ($tahun) {
+                $q->whereYear('tanggal_terima', $tahun)
+                  ->orWhere('program_bantuan', 'LIKE', "%{$tahun}%");
+            });
+
+            $penerima = $query->latest()->paginate(15)->appends($request->all());
+        } else {
+            // Data penerima bantuan kosong sebelum tahun dipilih
+            $penerima = PenerimaBantuan::whereRaw('1 = 0')->paginate(15)->appends($request->all());
+        }
+
+        // Ambil daftar tahun unik dari database
+        $daftarTahun = PenerimaBantuan::selectRaw('YEAR(tanggal_terima) as tahun')
+            ->whereNotNull('tanggal_terima')
+            ->groupBy('tahun')
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+
+        if (empty($daftarTahun)) {
+            $daftarTahun = [2026, 2025, 2024];
+        }
+
+        return view('public.bantuan', compact('penerima', 'daftarTahun'));
     }
 }

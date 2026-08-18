@@ -477,6 +477,15 @@
                     <label class="form-label">Email</label>
                     <input type="email" class="form-control" name="email" value="{{ old('email') }}" placeholder="Email">
                 </div>
+
+                <!-- Tahun Pendataan -->
+                <div class="col-md-6">
+                    <label class="form-label">Tahun Pendataan / Input <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control @error('tahun') is-invalid @enderror" name="tahun" value="{{ old('tahun', date('Y')) }}" placeholder="Contoh: 2026" required>
+                    @error('tahun')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
             </div>
             
             <!-- ===== BUTTONS ===== -->

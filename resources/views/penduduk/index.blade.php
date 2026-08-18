@@ -529,25 +529,81 @@
         </h5>
     </div>
     
-    <!-- Search & Tombol Tambah (HANYA KAUR UMUM) -->
+    <!-- Filter & Search (KAUR UMUM & KEPALA DESA) -->
     <div class="card-body pb-0">
-        <div class="row g-3 align-items-center">
-            <div class="col-md-6">
-                <form action="{{ route('penduduk.search') }}" method="GET" class="input-group">
-                    <input type="text" 
-                           name="keyword"
-                           class="form-control search-input" 
-                           placeholder="🔍 Cari NIK, Nama, KK, atau Alamat (tekan Enter)..." 
-                           value="{{ request('keyword') }}"
-                           autocomplete="off">
-                    <button type="submit" class="input-group-text bg-white border-start-0 cursor-pointer" style="border-left: none; border-radius: 0 12px 12px 0; outline: none; box-shadow: none;">
-                        <i class="fas fa-search text-muted"></i>
+        <form action="{{ route('penduduk.index') }}" method="GET" id="filterForm">
+            <div class="row g-2 align-items-center">
+                <!-- Search Input -->
+                <div class="col-lg-4 col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0 text-muted"><i class="fas fa-search"></i></span>
+                        <input type="text" 
+                               name="keyword" 
+                               class="form-control border-0 bg-light" 
+                               placeholder="🔍 Cari NIK, Nama, KK, Alamat..." 
+                               value="{{ request('keyword') }}"
+                               style="font-size: 0.85rem;"
+                               autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- Filter Tahun Update -->
+                <div class="col-lg-2 col-md-3">
+                    <select name="tahun" class="form-select border-0 bg-light" style="font-size: 0.85rem; cursor: pointer;" onchange="this.form.submit()">
+                        <option value="">Semua Tahun</option>
+                        @foreach($daftarTahun as $t)
+                            <option value="{{ $t }}" {{ request('tahun') == $t ? 'selected' : '' }}>Tahun {{ $t }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Filter Dusun -->
+                <div class="col-lg-2 col-md-4">
+                    <select name="dusun" class="form-select border-0 bg-light" style="font-size: 0.85rem; cursor: pointer;" onchange="this.form.submit()">
+                        <option value="">Semua Dusun</option>
+                        @foreach($daftarDusun as $d)
+                            <option value="{{ $d }}" {{ request('dusun') == $d ? 'selected' : '' }}>Dusun {{ $d }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Filter JK -->
+                <div class="col-lg-2 col-md-3">
+                    <select name="jenis_kelamin" class="form-select border-0 bg-light" style="font-size: 0.85rem; cursor: pointer;" onchange="this.form.submit()">
+                        <option value="">Semua JK</option>
+                        <option value="L" {{ request('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-laki (L)</option>
+                        <option value="P" {{ request('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan (P)</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="col-lg-2 col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-sm btn-primary flex-grow-1 fw-semibold" style="background: #1a472a; border-color: #1a472a; border-radius: 8px;">
+                        <i class="fas fa-filter me-1"></i> Filter
                     </button>
-                </form>
+                    @if(request('keyword') || request('tahun') || request('dusun') || request('jenis_kelamin'))
+                        <a href="{{ route('penduduk.index') }}" class="btn btn-sm btn-outline-secondary" style="border-radius: 8px;" title="Reset Filter">
+                            <i class="fas fa-redo"></i>
+                        </a>
+                    @endif
+                </div>
             </div>
-            <div class="col-md-6 text-md-end">
+        </form>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+            <small class="text-muted">
+                @if(request('tahun'))
+                    Menampilkan data update <strong>Tahun {{ request('tahun') }}</strong>
+                @else
+                    Menampilkan seluruh data update penduduk
+                @endif
+            </small>
+            <div class="d-flex gap-2">
+                <a href="{{ route('penduduk.cetak-pdf', ['tahun' => request('tahun')]) }}" target="_blank" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold" title="Cetak Laporan Rekapitulasi PDF">
+                    <i class="fas fa-file-pdf me-1"></i> Cetak Laporan PDF
+                </a>
                 @if(!$isKepalaDesa)
-                <a href="{{ route('penduduk.create') }}" class="btn btn-tambah">
+                <a href="{{ route('penduduk.create') }}" class="btn btn-tambah btn-sm">
                     <i class="fas fa-plus me-1"></i>Tambah Data Penduduk
                 </a>
                 @endif
@@ -568,7 +624,8 @@
                         <th style="width: 80px;">KK</th>
                         <th>Tempat, Tgl Lahir</th>
                         <th style="width: 50px;">JK</th>
-                        <th>Alamat</th>
+                        <th>Dusun / Alamat</th>
+                        <th>Tahun</th>
                         <th>Status</th>
                         <th style="width: 120px;">Aksi</th>
                     </tr>
@@ -599,6 +656,11 @@
                             </span>
                         </td>
                         <td>{{ Str::limit($item->alamat, 25) }}</td>
+                        <td>
+                            <span class="badge bg-secondary px-2 py-1" style="font-size: 0.7rem; font-weight: 500;">
+                                {{ $item->tahun ?? 2025 }}
+                            </span>
+                        </td>
                         <td>
                             <span class="badge badge-status badge-{{ $item->status_penduduk == 'tetap' ? 'tetap' : 'sementara' }}">
                                 {{ ucfirst($item->status_penduduk) }}

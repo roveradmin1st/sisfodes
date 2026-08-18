@@ -291,11 +291,10 @@
                         ->take(6)
                         ->get();
 
-    // Get latest UMKM products
-    $umkmTerbaru = App\Models\UmkmDesa::where('status', 'publish')
-                        ->latest()
-                        ->take(6)
-                        ->get();
+    // Get latest UMKM products safely
+    $umkmTerbaru = \Illuminate\Support\Facades\Schema::hasTable('umkm_desa') 
+                        ? App\Models\UmkmDesa::where('status', 'publish')->latest()->take(6)->get() 
+                        : collect();
 @endphp
 
 <!-- ==================== HERO SECTION ==================== -->
@@ -326,9 +325,13 @@
                         <span style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></span>
                         <span style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></span>
                     </div>
-                    <img src="{{ asset('storage/profil/kantor-desa.jpeg') }}" 
-                         alt="Kantor Desa {{ $namaDesa }}" 
-                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1541888946425-d0fbb186a5b2?auto=format&fit=crop&w=1000&q=80';">
+                    @if($profil && $profil->logo)
+    <img src="{{ asset('storage/' . $profil->logo) }}" alt="Kantor Desa {{ $namaDesa }}">
+@elseif($profil && $profil->map)
+    <img src="{{ asset('storage/' . $profil->map) }}" alt="Kantor Desa {{ $namaDesa }}">
+@else
+    <img src="https://images.unsplash.com/photo-1541888946425-d0fbb186a5b2?auto=format&fit=crop&w=1000&q=80" alt="Kantor Desa {{ $namaDesa }}">
+@endif
                 </div>
             </div>
         </div>

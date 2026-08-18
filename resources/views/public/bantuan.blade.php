@@ -194,9 +194,53 @@
 
 <div class="container py-5" style="background-color: #f8faf9;">
     
-    <div class="mb-5 border-bottom pb-3 text-center">
+    <div class="mb-4 text-center">
         <h3 class="fw-bold text-dark text-uppercase mb-0">Data Penerima Bantuan</h3>
-        <p class="text-muted mt-2 mb-0">Informasi Penerima Bantuan Langsung Tunai (BLT) Desa Sidomulyo Tahun 2025</p>
+        <p class="text-muted mt-2 mb-0">Informasi Penerima Bantuan Langsung Tunai (BLT) Desa Sidomulyo</p>
+    </div>
+
+    <!-- Form Filter Nama & Tahun -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-10">
+            <form action="{{ route('public.bantuan') }}" method="GET" class="card p-3 shadow-sm border-0 rounded-4" style="background: white;">
+                <div class="row g-2 align-items-center">
+                    <!-- Input Nama / NIK -->
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 text-muted"><i class="fas fa-search"></i></span>
+                            <input type="text" 
+                                   name="keyword" 
+                                   class="form-control border-0 bg-light" 
+                                   placeholder="🔍 Cari nama penerima / NIK / alamat..." 
+                                   value="{{ request('keyword') }}"
+                                   style="font-size: 0.9rem;">
+                        </div>
+                    </div>
+
+                    <!-- Filter Tahun -->
+                    <div class="col-md-3">
+                        <select name="tahun" class="form-select border-0 bg-light" style="font-size: 0.9rem; cursor: pointer;" onchange="this.form.submit()">
+                            <option value="">Semua Tahun</option>
+                            @foreach($daftarTahun as $t)
+                                <option value="{{ $t }}" {{ request('tahun') == $t ? 'selected' : '' }}>Tahun {{ $t }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Tombol Filter & Reset -->
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1 fw-semibold" style="background: #0d2b5e; border-color: #0d2b5e; border-radius: 8px;">
+                            <i class="fas fa-filter me-1"></i> Filter
+                        </button>
+                        @if(request('keyword') || request('tahun'))
+                            <a href="{{ route('public.bantuan') }}" class="btn btn-outline-secondary" style="border-radius: 8px;" title="Reset Filter">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
 <div class="card border-0 shadow-sm">
@@ -231,8 +275,14 @@
                     @empty
                     <tr>
                         <td colspan="6" class="text-center py-5 text-muted">
-                            <i class="fas fa-inbox" style="font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.3;"></i>
-                            Belum ada data penerima bantuan
+                            @if(!request('tahun'))
+                                <i class="fas fa-calendar-alt text-primary" style="font-size: 3rem; display: block; margin-bottom: 12px; opacity: 0.7;"></i>
+                                <h6 class="fw-bold text-dark mb-1">Silakan Pilih Tahun Penerimaan Bantuan</h6>
+                                <p class="small text-muted mb-0">Pilih tahun pada opsi filter di atas untuk menampilkan daftar data penerima bantuan.</p>
+                            @else
+                                <i class="fas fa-inbox" style="font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.3;"></i>
+                                Tidak ada data penerima bantuan yang ditemukan untuk tahun {{ request('tahun') }}.
+                            @endif
                         </td>
                     </tr>
                     @endforelse

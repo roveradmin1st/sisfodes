@@ -32,7 +32,8 @@ class Penduduk extends Model
         'no_hp',
         'email',
         'status_penduduk',
-        'is_kepala_keluarga', // <-- TAMBAHKAN INI
+        'is_kepala_keluarga',
+        'tahun',
     ];
 
     protected $casts = [

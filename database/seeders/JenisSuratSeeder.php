@@ -20,7 +20,7 @@ class JenisSuratSeeder extends Seeder
             ],
             [
                 'id_jenis_surat' => 2,
-                'nama_surat' => 'Surat Keterangan Tidak Mampu',
+                'nama_surat' => 'Surat Keterangan Tidak Mampu (SKTM)',
                 'deskripsi' => 'Surat keterangan tidak mampu untuk keperluan bantuan sosial, pendidikan, atau kesehatan',
                 'syarat' => "1. Fotokopi KTP\n2. Fotokopi Kartu Keluarga\n3. Dokumen Pendukung (foto rumah yang bersangkutan)",
             ],
@@ -32,7 +32,7 @@ class JenisSuratSeeder extends Seeder
             ],
             [
                 'id_jenis_surat' => 4,
-                'nama_surat' => 'Surat Keterangan Usaha',
+                'nama_surat' => 'Surat Keterangan Usaha (SKU)',
                 'deskripsi' => 'Surat yang menerangkan bahwa seseorang memiliki atau menjalankan usaha di wilayah Desa Sidomulyo',
                 'syarat' => "1. Fotokopi KTP\n2. Fotokopi Kartu Keluarga\n3. Dokumen Pendukung (foto bukti usaha)",
             ],
@@ -56,14 +56,41 @@ class JenisSuratSeeder extends Seeder
             ],
             [
                 'id_jenis_surat' => 8,
-                'nama_surat' => 'Surat Mandah',
+                'nama_surat' => 'Surat Mandah (Pengantar Pindah)',
                 'deskripsi' => 'Surat yang digunakan sebagai pengantar perpindahan penduduk dari Desa Sidomulyo ke daerah lain',
                 'syarat' => "1. Fotokopi KTP\n2. Fotokopi Kartu Keluarga\n3. Alamat Tujuan Pindah\n4. Surat Pengantar Kepala Dusun",
+            ],
+            [
+                'id_jenis_surat' => 9,
+                'nama_surat' => 'Surat Keterangan Kelahiran',
+                'deskripsi' => 'Surat keterangan kelahiran anak di wilayah Desa Sidomulyo untuk pengurusan Akta Kelahiran',
+                'syarat' => "1. Fotokopi KTP Orang Tua\n2. Fotokopi KK Orang Tua\n3. Surat Keterangan Bidan / Rumah Sakit\n4. Fotokopi Buku Nikah Orang Tua",
+            ],
+            [
+                'id_jenis_surat' => 10,
+                'nama_surat' => 'Surat Keterangan Beda Nama / Identitas',
+                'deskripsi' => 'Surat yang menerangkan penyesuaian beda penulisan nama atau identitas pada dokumen resmi',
+                'syarat' => "1. Fotokopi KTP & KK\n2. Fotokopi Dokumen Pembanding yang berbeda nama (Ijazah/Buku Nikah/BPJS)",
+            ],
+            [
+                'id_jenis_surat' => 11,
+                'nama_surat' => 'Surat Pengantar SKCK',
+                'deskripsi' => 'Surat pengantar dari desa untuk pembuatan SKCK di Polsek / Polres',
+                'syarat' => "1. Fotokopi KTP & KK\n2. Pas Foto 4x6 latar merah (2 lembar)\n3. Pengantar RT/RW/Dusun",
+            ],
+            [
+                'id_jenis_surat' => 12,
+                'nama_surat' => 'Surat Keterangan Penghasilan / Orang Tua',
+                'deskripsi' => 'Surat keterangan rincian penghasilan orang tua untuk keperluan beasiswa atau pendaftaran sekolah/kuliah',
+                'syarat' => "1. Fotokopi KTP Orang Tua & KK\n2. Surat Pernyataan Penghasilan bermaterai",
             ],
         ];
 
         foreach ($jenisSurat as $item) {
-            JenisSurat::create($item);
+            JenisSurat::updateOrCreate(
+                ['id_jenis_surat' => $item['id_jenis_surat']],
+                $item
+            );
         }
     }
 }
