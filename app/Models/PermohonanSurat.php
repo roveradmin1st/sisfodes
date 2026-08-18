@@ -22,6 +22,7 @@ class PermohonanSurat extends Model
         'file_surat_scan',
         'status_permohonan',
         'catatan',
+        'nomor_surat',
     ];
 
     protected $casts = [

@@ -186,10 +186,10 @@ class SuratController extends Controller
 
     public function permohonanVerifikasi(Request $request, $id)
     {
-        $permohonan = PermohonanSurat::findOrFail($id);
+        $permohonan = PermohonanSurat::with('jenisSurat')->findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:menunggu,diproses,selesai,ditolak',
+            'status'  => 'required|in:menunggu,diproses,selesai,ditolak',
             'catatan' => 'nullable|string',
         ]);
 
@@ -197,9 +197,32 @@ class SuratController extends Controller
             return back()->withErrors($validator);
         }
 
+        // Auto-generate nomor surat jika status diubah ke "selesai" dan nomor belum ada
+        $nomorSurat = $request->nomor_surat;
+
+        if ($request->status === 'selesai' && empty($nomorSurat)) {
+            $tahun     = now()->year;
+            $bulanRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][now()->month - 1];
+
+            // Kode jenis surat: ambil huruf kapital dari setiap kata (abaikan tanda baca)
+            $namaJenis = $permohonan->jenisSurat->nama_surat ?? 'SK';
+            $words     = preg_split('/[\s\/\(\)\-]+/', $namaJenis);
+            $words     = array_filter($words);
+            $kode      = implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), $words));
+            $kode      = substr($kode, 0, 5); // maks 5 karakter
+
+            // Urutan: hitung surat selesai tahun ini + 1
+            $urutan = PermohonanSurat::where('status_permohonan', 'selesai')
+                ->whereYear('updated_at', $tahun)
+                ->count() + 1;
+
+            $nomorSurat = sprintf('%03d', $urutan) . '/' . $kode . '/DS/' . $bulanRomawi . '/' . $tahun;
+        }
+
         $permohonan->update([
             'status_permohonan' => $request->status,
-            'catatan' => $request->catatan,
+            'catatan'           => $request->catatan,
+            'nomor_surat'       => $nomorSurat,
         ]);
 
         return redirect()->back()
@@ -282,28 +305,42 @@ class SuratController extends Controller
     }
     public function laporanIndex(Request $request)
     {
-        $bulan = $request->input('bulan', date('m'));
-        $tahun = $request->input('tahun', date('Y'));
+        $dari  = $request->input('dari',  now()->startOfMonth()->format('Y-m-d'));
+        $sampai = $request->input('sampai', now()->format('Y-m-d'));
 
-        $jenisSurat = JenisSurat::all();
-        
-        $laporan = [];
-        foreach ($jenisSurat as $jenis) {
-            $permohonan = PermohonanSurat::where('id_jenis_surat', $jenis->id_jenis_surat)
-                ->whereMonth('tanggal_pengajuan', $bulan)
-                ->whereYear('tanggal_pengajuan', $tahun)
-                ->get();
+        $permohonan = PermohonanSurat::with(['penduduk', 'jenisSurat'])
+            ->whereBetween('tanggal_pengajuan', [$dari, $sampai])
+            ->latest('tanggal_pengajuan')
+            ->get();
 
-            $total = $permohonan->count();
-            $laporan[] = [
-                'nama_surat' => $jenis->nama_surat,
-                'total' => $total,
-                'diproses' => $permohonan->whereIn('status_permohonan', ['menunggu', 'diproses'])->count(),
-                'selesai' => $permohonan->where('status_permohonan', 'selesai')->count(),
-                'ditolak' => $permohonan->where('status_permohonan', 'ditolak')->count(),
-            ];
-        }
+        return view('surat.laporan.index', compact('permohonan', 'dari', 'sampai'));
+    }
 
-        return view('surat.laporan.index', compact('laporan', 'bulan', 'tahun'));
+    public function laporanCetakPdf(Request $request)
+    {
+        $dari   = $request->input('dari',   now()->startOfMonth()->format('Y-m-d'));
+        $sampai = $request->input('sampai', now()->format('Y-m-d'));
+
+        $permohonan = PermohonanSurat::with(['penduduk', 'jenisSurat'])
+            ->whereBetween('tanggal_pengajuan', [$dari, $sampai])
+            ->latest('tanggal_pengajuan')
+            ->get();
+
+        $profil     = \App\Models\ProfilDesa::first();
+        $kepalaDesa = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kepala Desa%')->first();
+        $kaurUmum   = \App\Models\PerangkatDesa::where('jabatan', 'LIKE', '%Kaur Umum%')
+                        ->orWhere('jabatan', 'LIKE', '%Kepala Urusan Umum%')->first();
+
+        $periodeLabel = \Carbon\Carbon::parse($dari)->locale('id')->isoFormat('D MMMM Y')
+                      . ' s/d '
+                      . \Carbon\Carbon::parse($sampai)->locale('id')->isoFormat('D MMMM Y');
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('surat.laporan.cetak_pdf', compact(
+            'permohonan', 'dari', 'sampai', 'periodeLabel', 'profil', 'kepalaDesa', 'kaurUmum'
+        ));
+        $pdf->setPaper('A4', 'landscape');
+
+        $filename = 'Laporan_Pengajuan_Surat_' . $dari . '_sd_' . $sampai . '.pdf';
+        return $pdf->stream($filename);
     }
 }
