@@ -230,6 +230,28 @@
         color: #856404;
     }
 
+    /* ===== SCROLL KESAMPING (HORIZONTAL SCROLLBAR) ===== */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 12px;
+        padding-bottom: 6px;
+    }
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    .table-responsive::-webkit-scrollbar-track {
+        background: #e9ecef;
+        border-radius: 10px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #1a472a;
+        border-radius: 10px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #2d6a4f;
+    }
+
     /* ===== ACTION BUTTONS ===== */
     .btn-group .btn {
         border-radius: 8px !important;
@@ -240,13 +262,27 @@
         border: none;
         font-weight: 600;
     }
+    .btn-action-item {
+        border-radius: 8px !important;
+        padding: 5px 12px !important;
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        white-space: nowrap !important;
+        border: none !important;
+        transition: all 0.3s ease !important;
+    }
+    .btn-action-item:hover {
+        transform: translateY(-2px) scale(1.05) !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
     .btn-detail {
         background: linear-gradient(135deg, #e3f2fd, #bbdefb);
         color: #0d47a1;
     }
     .btn-detail:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 4px 15px rgba(13, 71, 161, 0.2);
         color: #0d47a1;
     }
     .btn-cetak {
@@ -254,27 +290,23 @@
         color: #1a472a;
     }
     .btn-cetak:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 4px 15px rgba(26, 71, 42, 0.2);
         color: #1a472a;
     }
     .btn-setujui {
-        background: linear-gradient(135deg, #d4edda, #a8e0b0);
-        color: #1a472a;
+        background: linear-gradient(135deg, #28a745, #218838) !important;
+        color: white !important;
     }
     .btn-setujui:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 4px 15px rgba(26, 71, 42, 0.2);
-        color: #1a472a;
+        background: linear-gradient(135deg, #218838, #1e7e34) !important;
+        color: white !important;
     }
     .btn-tolak {
-        background: linear-gradient(135deg, #f8d7da, #f5b8b8);
-        color: #721c24;
+        background: linear-gradient(135deg, #dc3545, #c82333) !important;
+        color: white !important;
     }
     .btn-tolak:hover {
-        transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 4px 15px rgba(114, 28, 36, 0.2);
-        color: #721c24;
+        background: linear-gradient(135deg, #c82333, #bd2130) !important;
+        color: white !important;
     }
     .btn-lihat-pdf {
         background: linear-gradient(135deg, #f8d7da, #f5b8b8);
@@ -512,7 +544,7 @@
         <!-- TABEL 1: DAFTAR PERMOHONAN PENGAJUAN SURAT -->
         <!-- ========================================== -->
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover text-nowrap" style="min-width: 1100px;">
                 <thead class="bg-primary text-white">
                     <tr>
                         <th style="width: 50px;">No</th>
@@ -524,7 +556,7 @@
                         <th>Keperluan</th>
                         <th>Dokumen</th>
                         <th>Verifikasi</th>
-                        <th style="width: 180px;">Aksi</th>
+                        <th style="min-width: 250px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -570,44 +602,44 @@
                             @endif
                         </td>
                         <td>
-                            <div class="btn-group btn-group-sm">
+                            <div class="d-flex flex-nowrap gap-1 align-items-center">
                                 <!-- Detail -->
                                 <a href="{{ route('surat.permohonan.show', $item->id_permohonan) }}" 
-                                   class="btn btn-detail" title="Detail">
-                                    Detail
+                                   class="btn btn-action-item btn-detail" title="Detail Pengajuan">
+                                    <i class="fas fa-eye me-1"></i> Detail
                                 </a>
 
                                 <!-- Cetak Draft PDF resmi -->
                                 <a href="{{ route('surat.permohonan.cetak', $item->id_permohonan) }}" target="_blank" 
-                                   class="btn btn-info text-white" title="Cetak / Lihat PDF">
+                                   class="btn btn-action-item btn-info text-white" title="Cetak / Lihat Draft PDF">
                                     <i class="fas fa-file-pdf me-1"></i> PDF
                                 </a>
 
                                 <!-- Cetak (jika selesai) -->
                                 @if($item->status_permohonan == 'selesai' && $item->file_surat_scan)
                                     <a href="{{ asset('storage/' . $item->file_surat_scan) }}" target="_blank" 
-                                       class="btn btn-cetak" title="Cetak Hasil Scan">
-                                        Scan PDF
+                                       class="btn btn-action-item btn-cetak" title="Cetak / Lihat Hasil Scan">
+                                        <i class="fas fa-file-alt me-1"></i> Scan PDF
                                     </a>
                                 @endif
 
                                 <!-- Setujui (Kepala Desa & Kaur Umum) -->
-                                @if(in_array(Auth::user()->role, ['kaur_umum', 'kepala_desa']) && $item->status_permohonan == 'menunggu')
+                                @if(in_array(Auth::user()->role, ['kaur_umum', 'kepala_desa']) && in_array($item->status_permohonan, ['menunggu', 'diproses']))
                                     <button type="button" 
-                                            class="btn btn-setujui btn-setujui" 
+                                            class="btn btn-action-item btn-setujui" 
                                             data-id="{{ $item->id_permohonan }}"
-                                            title="Setujui">
-                                        Setujui
+                                            title="Setujui Pengajuan">
+                                        <i class="fas fa-check me-1"></i> Setujui
                                     </button>
                                 @endif
 
                                 <!-- Tolak (Kepala Desa & Kaur Umum) -->
-                                @if(in_array(Auth::user()->role, ['kaur_umum', 'kepala_desa']) && $item->status_permohonan == 'menunggu')
+                                @if(in_array(Auth::user()->role, ['kaur_umum', 'kepala_desa']) && in_array($item->status_permohonan, ['menunggu', 'diproses']))
                                     <button type="button" 
-                                            class="btn btn-tolak btn-tolak" 
+                                            class="btn btn-action-item btn-tolak" 
                                             data-id="{{ $item->id_permohonan }}"
-                                            title="Tolak">
-                                        Tolak
+                                            title="Tolak Pengajuan">
+                                        <i class="fas fa-times me-1"></i> Tolak
                                     </button>
                                 @endif
                             </div>
@@ -655,7 +687,7 @@
         @endphp
 
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover text-nowrap" style="min-width: 900px;">
                 <thead class="bg-success text-white">
                     <tr>
                         <th style="width: 50px;">No</th>
