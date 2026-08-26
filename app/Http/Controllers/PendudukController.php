@@ -156,7 +156,17 @@ class PendudukController extends Controller
 
     public function index(Request $request)
     {
-        $query = Penduduk::query();
+        $tab = $request->get('tab', 'aktif');
+
+        if ($tab == 'meninggal') {
+            $query = Penduduk::onlyTrashed()->with(['permohonanSurat' => function($q) {
+                $q->whereHas('jenisSurat', function($js) {
+                    $js->where('nama_surat', 'LIKE', '%kematian%');
+                })->latest();
+            }]);
+        } else {
+            $query = Penduduk::query();
+        }
 
         // Filter Keyword
         if ($request->filled('keyword')) {
@@ -196,6 +206,9 @@ class PendudukController extends Controller
         $pendudukBaru = (clone $query)->whereMonth('created_at', now()->month)->count();
         $pendudukLansia = (clone $query)->where('tanggal_lahir', '<=', now()->subYears(60))->count();
 
+        $countAktif = Penduduk::count();
+        $countMeninggal = Penduduk::onlyTrashed()->count();
+
         // Ambil daftar tahun unik dari database
         $daftarTahun = Penduduk::selectRaw('tahun')
             ->whereNotNull('tahun')
@@ -223,7 +236,10 @@ class PendudukController extends Controller
             'pendudukBaru',
             'pendudukLansia',
             'daftarTahun',
-            'daftarDusun'
+            'daftarDusun',
+            'tab',
+            'countAktif',
+            'countMeninggal'
         ));
     }
 

@@ -147,7 +147,9 @@ class SuratController extends Controller
             'id_penduduk' => 'required|exists:penduduk,id_penduduk',
             'id_jenis_surat' => 'required|exists:jenis_surat,id_jenis_surat',
             'keperluan' => 'required|string',
-            'file_persyaratan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'file_persyaratan_list' => 'nullable|array',
+            'file_persyaratan_list.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'file_persyaratan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -158,15 +160,118 @@ class SuratController extends Controller
         $data['tanggal_pengajuan'] = now()->format('Y-m-d');
         $data['status_permohonan'] = 'menunggu';
 
-        if ($request->hasFile('file_persyaratan')) {
+        $filesPersyaratan = [];
+
+        // Unggah berkas untuk masing-masing item persyaratan
+        if ($request->hasFile('file_persyaratan_list')) {
+            $namaSyaratList = $request->input('nama_syarat', []);
+            $uploadedFiles = $request->file('file_persyaratan_list');
+
+            foreach ($uploadedFiles as $index => $file) {
+                if ($file && $file->isValid()) {
+                    $path = $file->store('surat/persyaratan', 'public');
+                    $label = $namaSyaratList[$index] ?? ('Persyaratan ' . ($index + 1));
+                    $filesPersyaratan[] = [
+                        'label' => $label,
+                        'file' => $path,
+                    ];
+                }
+            }
+        } elseif ($request->hasFile('file_persyaratan')) {
             $path = $request->file('file_persyaratan')->store('surat/persyaratan', 'public');
-            $data['file_persyaratan'] = $path;
+            $filesPersyaratan[] = [
+                'label' => 'Dokumen Persyaratan',
+                'file' => $path,
+            ];
         }
 
-        PermohonanSurat::create($data);
+        if (empty($filesPersyaratan)) {
+            return back()->withErrors(['file_persyaratan_list' => 'Seluruh dokumen persyaratan wajib diunggah.'])->withInput();
+        }
+
+        $data['file_persyaratan'] = json_encode($filesPersyaratan);
+
+        $permohonan = PermohonanSurat::create($data);
+
+        // Generate Nomor Surat Otomatis Berdasarkan Template Resmi Desa
+        $permohonan->nomor_surat = self::generateNomorSurat($permohonan);
+        $permohonan->save();
 
         return redirect()->route('surat.permohonan.index')
             ->with('success', 'Pengajuan surat berhasil dikirim.');
+    }
+
+    public static function generateNomorSurat($permohonan)
+    {
+        if (!empty($permohonan->nomor_surat)) {
+            return $permohonan->nomor_surat;
+        }
+
+        $tanggal = $permohonan->tanggal_pengajuan ? \Carbon\Carbon::parse($permohonan->tanggal_pengajuan) : now();
+        $tahun = $tanggal->year;
+        $bulanIndex = $tanggal->month - 1;
+        $bulanRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][$bulanIndex];
+
+        // Pemetaan Kode Klasifikasi Baku Surat Keterangan Desa Sidomulyo
+        $namaJenis = $permohonan->jenisSurat->nama_surat ?? 'Surat Keterangan';
+        $kodeMap = [
+            'Domisili' => '470',
+            'Tidak Mampu' => '400',
+            'Nikah' => '474.2',
+            'Usaha' => '510',
+            'Belum Menikah' => '474.1',
+            'Belum Punya Rumah' => '470',
+            'Kematian' => '474.3',
+            'Mandah' => '475',
+            'Beda Nama' => '470',
+            'Kelakuan Baik' => '300',
+            'Penghasilan' => '470',
+            'Tanah' => '590',
+        ];
+
+        $kode = '470';
+        foreach ($kodeMap as $key => $val) {
+            if (stripos($namaJenis, $key) !== false) {
+                $kode = $val;
+                break;
+            }
+        }
+
+        $urutan = PermohonanSurat::whereYear('tanggal_pengajuan', $tahun)
+            ->where('id_permohonan', '<=', $permohonan->id_permohonan)
+            ->count();
+
+        if ($urutan == 0) {
+            $urutan = $permohonan->id_permohonan ?? 1;
+        }
+
+        $nomorUrut = sprintf('%03d', $urutan);
+
+        // Format Resmi: [KODE] / [NOMOR_URUT] / DS / [BULAN_ROMAWI] / [TAHUN]
+        // Contoh: 470/001/DS/VIII/2026 (Angka Romawi adalah Bulan di depan Tahun)
+        return "{$kode}/{$nomorUrut}/DS/{$bulanRomawi}/{$tahun}";
+    }
+
+    public static function hapusPendudukMeninggal($permohonan)
+    {
+        $namaJenis = strtolower($permohonan->jenisSurat->nama_surat ?? '');
+        if (strpos($namaJenis, 'kematian') !== false) {
+            if ($permohonan->id_penduduk) {
+                $penduduk = Penduduk::find($permohonan->id_penduduk);
+                if ($penduduk) {
+                    $namaWarga = $penduduk->nama;
+
+                    // Hapus data penduduk dari master Data Penduduk
+                    $penduduk->delete();
+
+                    // Clear cache statistik kependudukan
+                    \Illuminate\Support\Facades\Cache::flush();
+
+                    return "Surat Keterangan Kematian diterbitkan. Data penduduk ({$namaWarga}) telah otomatis dihapus dari master Data Penduduk.";
+                }
+            }
+        }
+        return null;
     }
 
     public function permohonanShow($id)
@@ -197,26 +302,9 @@ class SuratController extends Controller
             return back()->withErrors($validator);
         }
 
-        // Auto-generate nomor surat jika status diubah ke "selesai" dan nomor belum ada
         $nomorSurat = $request->nomor_surat;
-
-        if ($request->status === 'selesai' && empty($nomorSurat)) {
-            $tahun     = now()->year;
-            $bulanRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][now()->month - 1];
-
-            // Kode jenis surat: ambil huruf kapital dari setiap kata (abaikan tanda baca)
-            $namaJenis = $permohonan->jenisSurat->nama_surat ?? 'SK';
-            $words     = preg_split('/[\s\/\(\)\-]+/', $namaJenis);
-            $words     = array_filter($words);
-            $kode      = implode('', array_map(fn($w) => strtoupper($w[0] ?? ''), $words));
-            $kode      = substr($kode, 0, 5); // maks 5 karakter
-
-            // Urutan: hitung surat selesai tahun ini + 1
-            $urutan = PermohonanSurat::where('status_permohonan', 'selesai')
-                ->whereYear('updated_at', $tahun)
-                ->count() + 1;
-
-            $nomorSurat = sprintf('%03d', $urutan) . '/' . $kode . '/DS/' . $bulanRomawi . '/' . $tahun;
+        if (empty($nomorSurat)) {
+            $nomorSurat = self::generateNomorSurat($permohonan);
         }
 
         $permohonan->update([
@@ -225,8 +313,18 @@ class SuratController extends Controller
             'nomor_surat'       => $nomorSurat,
         ]);
 
+        $pesanKematian = null;
+        if (in_array($request->status, ['selesai', 'diproses'])) {
+            $pesanKematian = self::hapusPendudukMeninggal($permohonan);
+        }
+
+        $pesanSukses = 'Status pengajuan berhasil diperbarui.';
+        if ($pesanKematian) {
+            $pesanSukses .= ' ' . $pesanKematian;
+        }
+
         return redirect()->back()
-            ->with('success', 'Status pengajuan berhasil diperbarui.');
+            ->with('success', $pesanSukses);
     }
 
     public function permohonanUploadSurat(Request $request, $id)
@@ -251,9 +349,17 @@ class SuratController extends Controller
                 'file_surat_scan' => $path,
                 'status_permohonan' => 'selesai',
             ]);
+
+            $pesanKematian = self::hapusPendudukMeninggal($permohonan);
+            $pesanSukses = 'Surat berhasil diunggah.';
+            if ($pesanKematian) {
+                $pesanSukses .= ' ' . $pesanKematian;
+            }
+
+            return redirect()->back()
+                ->with('success', $pesanSukses);
         }
-        return redirect()->back()
-            ->with('success', 'Surat berhasil diunggah.');
+        return redirect()->back();
     }
 
     public function permohonanCetak($id)

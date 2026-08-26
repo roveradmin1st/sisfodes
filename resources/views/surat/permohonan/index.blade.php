@@ -574,10 +574,28 @@
                         </td>
                         <td>{{ Str::limit($item->keperluan, 20) }}</td>
                         <td>
-                            @if($item->file_persyaratan)
-                                <a href="{{ asset('storage/' . $item->file_persyaratan) }}" target="_blank" class="btn btn-detail" style="font-size: 0.65rem; padding: 4px 10px;">
-                                    Lihat
-                                </a>
+                            @php
+                                $docs = [];
+                                if ($item->file_persyaratan) {
+                                    $decoded = json_decode($item->file_persyaratan, true);
+                                    if (is_array($decoded)) {
+                                        $docs = $decoded;
+                                    } else {
+                                        $docs = [['label' => 'Lihat Dokumen', 'file' => $item->file_persyaratan]];
+                                    }
+                                }
+                            @endphp
+
+                            @if(count($docs) > 0)
+                                <div class="d-flex flex-column gap-1">
+                                    @foreach($docs as $doc)
+                                        @if(!empty($doc['file']))
+                                            <a href="{{ asset('storage/' . $doc['file']) }}" target="_blank" class="btn btn-detail text-start text-truncate" style="font-size: 0.65rem; padding: 3px 8px; max-width: 170px;" title="{{ $doc['label'] ?? 'Lihat Berkas' }}">
+                                                <i class="fas fa-file-alt me-1"></i> {{ Str::limit($doc['label'] ?? 'Berkas', 20) }}
+                                            </a>
+                                        @endif
+                                    @endforeach
+                                </div>
                             @else
                                 <span class="text-muted">-</span>
                             @endif

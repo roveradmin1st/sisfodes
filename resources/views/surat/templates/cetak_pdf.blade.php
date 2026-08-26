@@ -113,7 +113,7 @@
     <!-- JUDUL SURAT -->
     <div class="title-section">
         <h4>{{ strtoupper($permohonan->jenisSurat->nama_surat ?? 'SURAT KETERANGAN') }}</h4>
-        <p>Nomor: 470 / {{ str_pad($permohonan->id_permohonan, 4, '0', STR_PAD_LEFT) }} / SDM / {{ date('Y') }}</p>
+        <p>Nomor : {{ $permohonan->nomor_surat ?? \App\Http\Controllers\SuratController::generateNomorSurat($permohonan) }}</p>
     </div>
 
     <!-- ISI SURAT -->

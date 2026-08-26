@@ -360,10 +360,33 @@
         <div class="row mt-3">
             <div class="col-md-6">
                 <h6 class="section-title">Dokumen Persyaratan</h6>
-                @if($permohonan->file_persyaratan)
-                    <a href="{{ asset('storage/' . $permohonan->file_persyaratan) }}" target="_blank" class="btn-action btn-dokumen">
-                        Lihat Dokumen
-                    </a>
+                @php
+                    $docs = [];
+                    if ($permohonan->file_persyaratan) {
+                        $decoded = json_decode($permohonan->file_persyaratan, true);
+                        if (is_array($decoded)) {
+                            $docs = $decoded;
+                        } else {
+                            $docs = [['label' => 'Dokumen Persyaratan Utama', 'file' => $permohonan->file_persyaratan]];
+                        }
+                    }
+                @endphp
+
+                @if(count($docs) > 0)
+                    <div class="d-flex flex-column gap-2 mt-2">
+                        @foreach($docs as $doc)
+                            <div class="d-flex align-items-center justify-content-between p-2 px-3 border rounded-3 bg-light">
+                                <span class="fw-bold small text-dark me-2">
+                                    <i class="fas fa-file-alt text-success me-2"></i> {{ $doc['label'] ?? 'Dokumen Persyaratan' }}
+                                </span>
+                                @if(!empty($doc['file']))
+                                    <a href="{{ asset('storage/' . $doc['file']) }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1" style="font-size: 0.75rem;">
+                                        <i class="fas fa-external-link-alt me-1"></i> Lihat Berkas
+                                    </a>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
                 @else
                     <span class="text-muted">Belum ada dokumen</span>
                 @endif
@@ -414,8 +437,8 @@
                         </div>
                         <div class="col-md-3">
                             <input type="text" class="form-control" name="nomor_surat"
-                                placeholder="Nomor Surat (cth: 001/SKH/DS/F/2026)"
-                                value="{{ old('nomor_surat', $permohonan->nomor_surat) }}">
+                                placeholder="Nomor Surat (contoh: 470/001/DS/VIII/2026)"
+                                value="{{ old('nomor_surat', $permohonan->nomor_surat ?? \App\Http\Controllers\SuratController::generateNomorSurat($permohonan)) }}">
                         </div>
                         <div class="col-md-4">
                             <input type="text" class="form-control" name="catatan" placeholder="Catatan (opsional)" value="{{ old('catatan', $permohonan->catatan) }}">

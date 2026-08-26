@@ -531,7 +531,27 @@
     
     <!-- Filter & Search (KAUR UMUM & KEPALA DESA) -->
     <div class="card-body pb-0">
+        
+        <!-- NAV TABS: PENDUDUK AKTIF vs RIWAYAT MENINGGAL -->
+        <ul class="nav nav-pills mb-3 border-bottom pb-2">
+            <li class="nav-item">
+                <a class="nav-link fw-bold me-2 {{ ($tab ?? 'aktif') == 'aktif' ? 'active bg-success text-white' : 'text-dark bg-light' }}" 
+                   style="border-radius: 10px; font-size: 0.85rem;" 
+                   href="{{ route('penduduk.index', array_merge(request()->except('tab'), ['tab' => 'aktif'])) }}">
+                    <i class="fas fa-users me-1"></i> Data Penduduk Aktif <span class="badge bg-white text-dark ms-1">{{ number_format($countAktif ?? 0, 0, ',', '.') }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link fw-bold {{ ($tab ?? 'aktif') == 'meninggal' ? 'active bg-dark text-white' : 'text-dark bg-light' }}" 
+                   style="border-radius: 10px; font-size: 0.85rem;" 
+                   href="{{ route('penduduk.index', array_merge(request()->except('tab'), ['tab' => 'meninggal'])) }}">
+                    <i class="fas fa-cross me-1"></i> Riwayat Penduduk Meninggal Dunia <span class="badge bg-danger text-white ms-1">{{ number_format($countMeninggal ?? 0, 0, ',', '.') }}</span>
+                </a>
+            </li>
+        </ul>
+
         <form action="{{ route('penduduk.index') }}" method="GET" id="filterForm">
+            <input type="hidden" name="tab" value="{{ $tab ?? 'aktif' }}">
             <div class="row g-2 align-items-center">
                 <!-- Search Input -->
                 <div class="col-lg-4 col-md-5">
@@ -615,6 +635,66 @@
     <!-- Tabel -->
     <div class="card-body p-0">
         <div class="table-responsive">
+            @if(($tab ?? 'aktif') == 'meninggal')
+            <table class="table table-hover mb-0 text-nowrap" id="pendudukTable">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th style="width: 50px;">No</th>
+                        <th>NIK</th>
+                        <th>Nama Almarhum / Almarhumah</th>
+                        <th>JK</th>
+                        <th>Dusun / Alamat</th>
+                        <th>Tgl Meninggal / Terbit Surat</th>
+                        <th>Nomor Surat Kematian</th>
+                        <th style="width: 150px;">Aksi / Arsip Surat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($penduduk as $item)
+                    @php
+                        $suratKematian = $item->permohonanSurat ? $item->permohonanSurat->first() : null;
+                    @endphp
+                    <tr>
+                        <td><span class="fw-bold" style="color: #1a472a;">{{ $loop->iteration + ($penduduk->currentPage() - 1) * $penduduk->perPage() }}</span></td>
+                        <td><span class="fw-bold text-secondary" style="font-size: 0.8rem;">{{ $item->nik }}</span></td>
+                        <td><strong class="text-danger"><i class="fas fa-cross me-1"></i>{{ $item->nama }}</strong></td>
+                        <td>
+                            <span class="badge badge-jk-{{ $item->jenis_kelamin == 'L' ? 'L' : 'P' }}">
+                                {{ $item->jenis_kelamin == 'L' ? 'L' : 'P' }}
+                            </span>
+                        </td>
+                        <td>{{ $item->dusun ? 'Dusun '.$item->dusun : Str::limit($item->alamat, 25) }}</td>
+                        <td>
+                            <small class="fw-bold text-dark">
+                                {{ $item->deleted_at ? $item->deleted_at->format('d/m/Y') : ($suratKematian ? $suratKematian->tanggal_pengajuan->format('d/m/Y') : '-') }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark" style="font-size: 0.75rem;">
+                                {{ $suratKematian->nomor_surat ?? '474.3/SDM/'.date('Y') }}
+                            </span>
+                        </td>
+                        <td>
+                            @if($suratKematian)
+                                <a href="{{ route('surat.permohonan.show', $suratKematian->id_permohonan) }}" class="btn btn-sm btn-outline-primary" style="font-size: 0.75rem; border-radius: 8px;">
+                                    <i class="fas fa-eye me-1"></i> Detail Surat
+                                </a>
+                            @else
+                                <span class="badge bg-secondary">Telah Meninggal</span>
+                            @endif
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fas fa-monument" style="font-size: 2.5rem; display: block; margin-bottom: 12px; opacity: 0.3;"></i>
+                            <p class="mb-0">Belum ada riwayat penduduk yang meninggal dunia</p>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            @else
             <table class="table table-hover mb-0" id="pendudukTable">
                 <thead>
                     <tr>
@@ -703,6 +783,7 @@
                     @endforelse
                 </tbody>
             </table>
+            @endif
         </div>
     </div>
     <div class="card-footer bg-white">

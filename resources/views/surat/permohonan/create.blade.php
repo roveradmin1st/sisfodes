@@ -351,10 +351,10 @@
                     <label class="form-label">Pilih Jenis Surat Keterangan <span class="text-danger">*</span></label>
                 </div>
                 <div class="col-md-9">
-                    <select class="form-select @error('id_jenis_surat') is-invalid @enderror" name="id_jenis_surat" required>
-                        <option value="">Pilih</option>
+                    <select class="form-select @error('id_jenis_surat') is-invalid @enderror" name="id_jenis_surat" id="select_jenis_surat" required>
+                        <option value="">-- Pilih Jenis Surat --</option>
                         @foreach($jenisSurat as $item)
-                            <option value="{{ $item->id_jenis_surat }}" {{ old('id_jenis_surat') == $item->id_jenis_surat ? 'selected' : '' }}>
+                            <option value="{{ $item->id_jenis_surat }}" data-syarat="{{ e($item->syarat) }}" {{ old('id_jenis_surat') == $item->id_jenis_surat ? 'selected' : '' }}>
                                 {{ $item->nama_surat }}
                             </option>
                         @endforeach
@@ -442,28 +442,22 @@
             </div>
 
             <!-- ========================================== -->
-            <!-- UPLOAD DOKUMEN PERSYARATAN                -->
+            <!-- UPLOAD DOKUMEN PERSYARATAN (DINAMIS)       -->
             <!-- ========================================== -->
-            <div class="row mb-3 align-items-center">
+            <div class="row mb-4 align-items-start">
                 <div class="col-md-3">
-                    <label class="form-label">Upload Dokumen Persyaratan <span class="text-danger">*</span></label>
+                    <label class="form-label fw-bold">Upload Dokumen Persyaratan <span class="text-danger">*</span></label>
+                    <small class="text-muted d-block mt-1">Unggah berkas untuk masing-masing persyaratan surat yang wajib dipenuhi.</small>
                 </div>
                 <div class="col-md-9">
-                    <div class="upload-box">
-                        <div class="row g-3 align-items-center">
-                            <div class="col-md-10">
-                                <input type="file" class="form-control file-input @error('file_persyaratan') is-invalid @enderror" 
-                                       name="file_persyaratan" accept=".pdf,.jpg,.jpeg,.png" required>
-                                <small class="text-muted">Upload file persyaratan (PDF, JPG, PNG) max 2MB</small>
-                            </div>
-                            <div class="col-md-2 text-md-end">
-                                <span class="badge-upload">Foto Dokumen</span>
-                            </div>
+                    <div id="container-persyaratan">
+                        <div class="alert alert-secondary py-3 px-3 border-0 rounded-3 text-muted">
+                            <i class="fas fa-info-circle me-1"></i> Silakan pilih <strong>Jenis Surat Keterangan</strong> terlebih dahulu untuk melihat daftar dokumen persyaratan yang wajib diunggah.
                         </div>
-                        @error('file_persyaratan')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                        @enderror
                     </div>
+                    @error('file_persyaratan_list')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -501,12 +495,84 @@
             <div class="row mt-4">
                 <div class="col-12 d-flex gap-3 flex-wrap">
                     <a href="{{ route('surat.permohonan.index') }}" class="btn-action btn-batal">Batal</a>
-                    <button type="submit" class="btn-action btn-kirim">Kirim</button>
+                    <button type="submit" class="btn-action btn-kirim">Kirim Pengajuan Surat</button>
                 </div>
             </div>
 
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectJenis = document.getElementById('select_jenis_surat');
+    const container = document.getElementById('container-persyaratan');
+
+    function updateRequirements() {
+        if (!selectJenis || !container) return;
+        const selectedOption = selectJenis.options[selectJenis.selectedIndex];
+        
+        if (!selectedOption || !selectedOption.value) {
+            container.innerHTML = `
+                <div class="alert alert-secondary py-3 px-3 border-0 rounded-3 text-muted">
+                    <i class="fas fa-info-circle me-1"></i> Silakan pilih <strong>Jenis Surat Keterangan</strong> terlebih dahulu untuk melihat daftar dokumen persyaratan yang wajib diunggah.
+                </div>
+            `;
+            return;
+        }
+
+        const rawSyarat = selectedOption.getAttribute('data-syarat') || '';
+        const lines = rawSyarat.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+        if (lines.length === 0) {
+            container.innerHTML = `
+                <div class="upload-box p-3 border rounded-3 bg-light">
+                    <label class="form-label fw-bold small text-dark mb-1">Dokumen Persyaratan Pendukung <span class="text-danger">*</span></label>
+                    <input type="hidden" name="nama_syarat[]" value="Dokumen Persyaratan Utama">
+                    <input type="file" class="form-control" name="file_persyaratan_list[]" accept=".pdf,.jpg,.jpeg,.png" required>
+                    <small class="text-muted mt-1 d-block"><i class="fas fa-info-circle me-1"></i> Format: PDF, JPG, PNG (Maksimal 2MB)</small>
+                </div>
+            `;
+            return;
+        }
+
+        let html = `
+            <div class="alert alert-info py-2 px-3 mb-3 border-0 rounded-3" style="font-size: 0.85rem; background: #e8f4f8; color: #1a472a;">
+                <i class="fas fa-exclamation-circle me-1 text-primary"></i> Wajib mengunggah seluruh berkas dokumen di bawah ini sesuai persyaratan surat yang dipilih:
+            </div>
+            <div class="d-flex flex-column gap-3">
+        `;
+
+        lines.forEach((line, index) => {
+            html += `
+                <div class="p-3 border rounded-3 bg-white shadow-sm">
+                    <div class="row align-items-center g-2">
+                        <div class="col-md-5 fw-bold text-dark" style="font-size: 0.85rem;">
+                            <i class="fas fa-file-upload text-success me-2"></i> ${line} <span class="text-danger">*</span>
+                        </div>
+                        <div class="col-md-7">
+                            <input type="hidden" name="nama_syarat[]" value="${line}">
+                            <input type="file" class="form-control form-control-sm" name="file_persyaratan_list[]" accept=".pdf,.jpg,.jpeg,.png" required>
+                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">Upload dokumen (PDF, JPG, PNG) max 2MB</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    if (selectJenis) {
+        selectJenis.addEventListener('change', updateRequirements);
+        if (selectJenis.value) {
+            updateRequirements();
+        }
+    }
+});
+</script>
+@endpush
 
 @endsection
