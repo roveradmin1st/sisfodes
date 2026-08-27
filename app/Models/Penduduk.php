@@ -34,6 +34,7 @@ class Penduduk extends Model
         'email',
         'status_penduduk',
         'is_kepala_keluarga',
+        'hubungan_keluarga',
         'tahun',
     ];
 

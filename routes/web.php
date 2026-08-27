@@ -69,6 +69,7 @@ Route::middleware(['auth'])->group(function () {
     // ==================== PENDUDUK ====================
     Route::get('/penduduk/cetak-pdf', [PendudukController::class, 'cetakPdf'])->name('penduduk.cetak-pdf')->middleware('role:kaur_umum,kepala_desa');
     Route::get('/penduduk/search', [PendudukController::class, 'search'])->name('penduduk.search')->middleware('role:kaur_umum,kepala_desa');
+    Route::get('/penduduk/kk/{no_kk}', [PendudukController::class, 'detailKk'])->name('penduduk.kk.show')->middleware('role:kaur_umum,kepala_desa');
     Route::get('/penduduk/create', [PendudukController::class, 'create'])->name('penduduk.create')->middleware('role:kaur_umum');
     Route::post('/penduduk', [PendudukController::class, 'store'])->name('penduduk.store')->middleware('role:kaur_umum');
     Route::get('/penduduk', [PendudukController::class, 'index'])->name('penduduk.index')->middleware('role:kaur_umum,kepala_desa');

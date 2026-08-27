@@ -42,70 +42,46 @@ class PendudukController extends Controller
                 }
             });
         }
-          $cacheTtl = 60 * 24; // Cache for 24 hours (or until cleared)
-        
-        $totalPenduduk = \Illuminate\Support\Facades\Cache::remember('stat_total_penduduk', $cacheTtl, function() {
-            return Penduduk::count();
-        });
-
-        $totalLaki = \Illuminate\Support\Facades\Cache::remember('stat_total_laki', $cacheTtl, function() {
-            return Penduduk::where('jenis_kelamin', 'L')->count();
-        });
-
-        $totalPerempuan = \Illuminate\Support\Facades\Cache::remember('stat_total_perempuan', $cacheTtl, function() {
-            return Penduduk::where('jenis_kelamin', 'P')->count();
-        });
+        $totalPenduduk = Penduduk::count();
+        $totalLaki     = Penduduk::where('jenis_kelamin', 'L')->count();
+        $totalPerempuan= Penduduk::where('jenis_kelamin', 'P')->count();
         
         $genderData = [
             'Laki-laki' => $totalLaki,
             'Perempuan' => $totalPerempuan,
         ];
 
-        $allDusunRaw = \Illuminate\Support\Facades\Cache::remember('stat_all_dusun', $cacheTtl, function() {
-            return Penduduk::select('dusun')->distinct()->pluck('dusun')->toArray();
-        });
+        $allDusunRaw = Penduduk::select('dusun')->distinct()->pluck('dusun')->toArray();
 
-        $dusunDataRaw = \Illuminate\Support\Facades\Cache::remember('stat_dusun_data', $cacheTtl, function() {
-            return Penduduk::selectRaw('UPPER(TRIM(dusun)) as raw_dusun, count(*) as count')
-                ->groupBy('raw_dusun')
-                ->pluck('count', 'raw_dusun')
-                ->toArray();
-        });
+        $dusunDataRaw = Penduduk::selectRaw('UPPER(TRIM(dusun)) as raw_dusun, count(*) as count')
+            ->groupBy('raw_dusun')
+            ->pluck('count', 'raw_dusun')
+            ->toArray();
 
-        $agamaData = \Illuminate\Support\Facades\Cache::remember('stat_agama_data', $cacheTtl, function() {
-            return Penduduk::selectRaw('agama, count(*) as count')
-                ->groupBy('agama')
-                ->pluck('count', 'agama')
-                ->toArray();
-        });
+        $agamaData = Penduduk::selectRaw('agama, count(*) as count')
+            ->groupBy('agama')
+            ->pluck('count', 'agama')
+            ->toArray();
 
-        $pekerjaanData = \Illuminate\Support\Facades\Cache::remember('stat_pekerjaan_data', $cacheTtl, function() {
-            return Penduduk::selectRaw('pekerjaan, count(*) as count')
-                ->groupBy('pekerjaan')
-                ->pluck('count', 'pekerjaan')
-                ->toArray();
-        });
+        $pekerjaanData = Penduduk::selectRaw('pekerjaan, count(*) as count')
+            ->groupBy('pekerjaan')
+            ->pluck('count', 'pekerjaan')
+            ->toArray();
 
-        $pendidikanData = \Illuminate\Support\Facades\Cache::remember('stat_pendidikan_data', $cacheTtl, function() {
-            return Penduduk::selectRaw('pendidikan, count(*) as count')
-                ->groupBy('pendidikan')
-                ->pluck('count', 'pendidikan')
-                ->toArray();
-        });
+        $pendidikanData = Penduduk::selectRaw('pendidikan, count(*) as count')
+            ->groupBy('pendidikan')
+            ->pluck('count', 'pendidikan')
+            ->toArray();
 
-        $statusKawinData = \Illuminate\Support\Facades\Cache::remember('stat_kawin_data', $cacheTtl, function() {
-            return Penduduk::selectRaw('status_perkawinan, count(*) as count')
-                ->groupBy('status_perkawinan')
-                ->pluck('count', 'status_perkawinan')
-                ->toArray();
-        });
+        $statusKawinData = Penduduk::selectRaw('status_perkawinan, count(*) as count')
+            ->groupBy('status_perkawinan')
+            ->pluck('count', 'status_perkawinan')
+            ->toArray();
 
-        $statusPendudukData = \Illuminate\Support\Facades\Cache::remember('stat_status_data', $cacheTtl, function() {
-            return Penduduk::selectRaw('status_penduduk, count(*) as count')
-                ->groupBy('status_penduduk')
-                ->pluck('count', 'status_penduduk')
-                ->toArray();
-        });
+        $statusPendudukData = Penduduk::selectRaw('status_penduduk, count(*) as count')
+            ->groupBy('status_penduduk')
+            ->pluck('count', 'status_penduduk')
+            ->toArray();
 
         // 2. Dusun Data
         $dusunData = [];
@@ -183,8 +159,7 @@ class PendudukController extends Controller
         if ($request->filled('tahun')) {
             $tahun = $request->tahun;
             $query->where(function($q) use ($tahun) {
-                $q->where('tahun', $tahun)
-                  ->orWhereYear('created_at', $tahun);
+                $q->whereRaw("COALESCE(tahun, YEAR(created_at), 2025) = ?", [$tahun]);
             });
         }
 
@@ -199,22 +174,24 @@ class PendudukController extends Controller
             $query->where('jenis_kelamin', $request->jenis_kelamin);
         }
 
-        $penduduk = $query->latest()->paginate(10)->appends($request->all());
+        // Hitung statistik kartu SEBELUM paginate() memodifikasi $query
+        $baseQuery      = clone $query;
+        $totalPenduduk  = (clone $baseQuery)->count();
+        $kepalaKeluarga = (clone $baseQuery)->where('is_kepala_keluarga', 1)->count();
+        $pendudukBaru   = Penduduk::whereYear('created_at', now()->year)->whereMonth('created_at', now()->month)->count();
+        $pendudukLansia = (clone $baseQuery)->whereRaw("TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) >= 60")->count();
 
-        $totalPenduduk = (clone $query)->count();
-        $kepalaKeluarga = (clone $query)->where('is_kepala_keluarga', 1)->count();
-        $pendudukBaru = (clone $query)->whereMonth('created_at', now()->month)->count();
-        $pendudukLansia = (clone $query)->where('tanggal_lahir', '<=', now()->subYears(60))->count();
-
-        $countAktif = Penduduk::count();
+        $countAktif     = Penduduk::count();
         $countMeninggal = Penduduk::onlyTrashed()->count();
 
+        // Jalankan pagination untuk tabel
+        $penduduk = $query->latest()->paginate(10)->appends($request->all());
+
         // Ambil daftar tahun unik dari database
-        $daftarTahun = Penduduk::selectRaw('tahun')
-            ->whereNotNull('tahun')
-            ->groupBy('tahun')
-            ->orderBy('tahun', 'desc')
-            ->pluck('tahun')
+        $daftarTahun = Penduduk::selectRaw('COALESCE(tahun, YEAR(created_at), 2025) as thn')
+            ->groupBy('thn')
+            ->orderBy('thn', 'desc')
+            ->pluck('thn')
             ->toArray();
 
         if (empty($daftarTahun)) {
@@ -294,14 +271,38 @@ class PendudukController extends Controller
         return $pdf->stream('Laporan_Rekapitulasi_Data_Penduduk_Desa_Sidomulyo.pdf');
     }
 
+    public function detailKk($no_kk)
+    {
+        $anggotaKeluarga = Penduduk::where('no_kk', $no_kk)
+            ->orderByDesc('is_kepala_keluarga')
+            ->orderBy('tanggal_lahir', 'asc')
+            ->get();
+
+        if ($anggotaKeluarga->isEmpty()) {
+            abort(404, 'Kartu Keluarga tidak ditemukan.');
+        }
+
+        $kepalaKeluarga = $anggotaKeluarga->where('is_kepala_keluarga', 1)->first() ?? $anggotaKeluarga->first();
+
+        return view('penduduk.kk_show', compact('no_kk', 'anggotaKeluarga', 'kepalaKeluarga'));
+    }
+
     public function search(Request $request)
     {
         return $this->index($request);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        return view('penduduk.create');
+        $no_kk = $request->get('no_kk');
+        $mode = $request->get('mode', $no_kk ? 'anggota' : 'kepala');
+
+        $kkPreset = null;
+        if ($no_kk) {
+            $kkPreset = Penduduk::where('no_kk', $no_kk)->first();
+        }
+
+        return view('penduduk.create', compact('no_kk', 'mode', 'kkPreset'));
     }
 
     public function store(Request $request)
@@ -318,6 +319,7 @@ class PendudukController extends Controller
             'alamat' => 'required|string',
             'status_penduduk' => 'required|in:tetap,sementara',
             'is_kepala_keluarga' => 'nullable|boolean',
+            'hubungan_keluarga' => 'nullable|string|max:50',
             'tahun' => 'nullable|integer',
         ]);
 
@@ -327,10 +329,23 @@ class PendudukController extends Controller
 
         $data = $request->all();
         $data['kewarganegaraan'] = $request->kewarganegaraan ?: 'WNI';
-        $data['is_kepala_keluarga'] = $request->has('is_kepala_keluarga') ? 1 : 0;
+
+        if ($request->has('is_kepala_keluarga') && $request->is_kepala_keluarga == 1) {
+            $data['is_kepala_keluarga'] = 1;
+            $data['hubungan_keluarga'] = 'Kepala Keluarga';
+        } else {
+            $data['is_kepala_keluarga'] = 0;
+            $data['hubungan_keluarga'] = $request->hubungan_keluarga ?: 'Anggota Keluarga';
+        }
+
         $data['tahun'] = $request->tahun ?: date('Y');
 
         Penduduk::create($data);
+
+        if ($request->filled('from_kk')) {
+            return redirect()->route('penduduk.kk.show', $request->no_kk)
+                ->with('success', 'Anggota keluarga baru berhasil ditambahkan ke Kartu Keluarga.');
+        }
 
         return redirect()->route('penduduk.index')
             ->with('success', 'Data penduduk berhasil ditambahkan.');

@@ -459,7 +459,7 @@
                         <i class="fas fa-users me-1" style="color: #1a472a;"></i>
                         Total Penduduk
                     </p>
-                    <h3 class="stat-number">{{ $totalPenduduk }}</h3>
+                    <h3 class="stat-number">{{ number_format($totalPenduduk, 0, ',', '.') }}</h3>
                 </div>
                 <div class="icon bg-success">
                     <i class="fas fa-users"></i>
@@ -475,7 +475,7 @@
                         <i class="fas fa-user-tie me-1" style="color: #0d6efd;"></i>
                         Kepala Keluarga
                     </p>
-                    <h3 class="stat-number" style="background: linear-gradient(135deg, #0d6efd, #0a58ca); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">{{ $kepalaKeluarga }}</h3>
+                    <h3 class="stat-number" style="background: linear-gradient(135deg, #0d6efd, #0a58ca); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">{{ number_format($kepalaKeluarga, 0, ',', '.') }}</h3>
                 </div>
                 <div class="icon bg-primary">
                     <i class="fas fa-user-tie"></i>
@@ -491,7 +491,7 @@
                         <i class="fas fa-user-plus me-1" style="color: #856404;"></i>
                         Penduduk Baru
                     </p>
-                    <h3 class="stat-number" style="background: linear-gradient(135deg, #ffc107, #e0a800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">{{ $pendudukBaru }}</h3>
+                    <h3 class="stat-number" style="background: linear-gradient(135deg, #ffc107, #e0a800); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">{{ number_format($pendudukBaru, 0, ',', '.') }}</h3>
                     <span class="stat-sub">Bulan ini</span>
                 </div>
                 <div class="icon bg-warning">
@@ -508,7 +508,7 @@
                         <i class="fas fa-user-clock me-1" style="color: #dc3545;"></i>
                         Penduduk Lansia
                     </p>
-                    <h3 class="stat-number" style="background: linear-gradient(135deg, #dc3545, #b02a37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">{{ $pendudukLansia }}</h3>
+                    <h3 class="stat-number" style="background: linear-gradient(135deg, #dc3545, #b02a37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; display: inline-block;">{{ number_format($pendudukLansia, 0, ',', '.') }}</h3>
                     <span class="stat-sub">Usia &gt; 60 tahun</span>
                 </div>
                 <div class="icon bg-danger">
@@ -717,13 +717,9 @@
                         <td><span class="fw-bold" style="color: #1a472a; font-size: 0.8rem;">{{ $item->nik }}</span></td>
                         <td><strong>{{ $item->nama }}</strong></td>
                         <td>
-                            @if($item->is_kepala_keluarga)
-                                <span class="badge badge-kk">
-                                    <i class="fas fa-check-circle"></i>
-                                </span>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
+                            <a href="{{ route('penduduk.kk.show', $item->no_kk) }}" class="badge {{ $item->is_kepala_keluarga ? 'bg-success text-white' : 'bg-light text-dark border' }} text-decoration-none px-2 py-1 shadow-sm" title="Klik untuk lihat seluruh Anggota Kartu Keluarga No. {{ $item->no_kk }}">
+                                <i class="fas fa-users me-1"></i> {{ $item->is_kepala_keluarga ? 'Kepala KK' : 'Anggota' }}
+                            </a>
                         </td>
                         <td>
                             {{ $item->tempat_lahir }}

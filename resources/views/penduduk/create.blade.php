@@ -264,12 +264,35 @@
         </h5>
     </div>
     <div class="card-body">
+        @if(request('from_kk'))
+            <input type="hidden" name="from_kk" value="1">
+        @endif
+
+        <!-- Pilihan Mode: Tambah KK Baru vs Tambah Anggota Keluarga -->
+        <div class="card border border-success bg-success bg-opacity-10 p-3 mb-4 rounded-4">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <h6 class="fw-bold text-success mb-1">
+                        <i class="fas fa-users me-2"></i>Pilihan Mode Penambahan Penduduk
+                    </h6>
+                    <small class="text-muted">Pilih apakah Anda menambah Kepala Keluarga Baru atau Anggota Keluarga ke Kartu Keluarga yang sudah ada</small>
+                </div>
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="mode_keluarga" id="mode_kepala" value="kepala" {{ ($mode ?? 'kepala') == 'kepala' ? 'checked' : '' }} onchange="switchMode('kepala')">
+                    <label class="btn btn-outline-success fw-bold text-nowrap" for="mode_kepala"><i class="fas fa-user-shield me-1"></i> Buat KK Baru (Kepala KK)</label>
+
+                    <input type="radio" class="btn-check" name="mode_keluarga" id="mode_anggota" value="anggota" {{ ($mode ?? '') == 'anggota' ? 'checked' : '' }} onchange="switchMode('anggota')">
+                    <label class="btn btn-outline-success fw-bold text-nowrap" for="mode_anggota"><i class="fas fa-user-plus me-1"></i> Tambah Anggota Ke KK Ada</label>
+                </div>
+            </div>
+        </div>
+
         <form method="POST" action="{{ route('penduduk.store') }}">
             @csrf
             
             <!-- ===== SECTION: DATA PRIBADI ===== -->
             <div class="section-divider">
-                <span class="label"><i class="fas fa-user"></i>Data Pribadi</span>
+                <span class="label"><i class="fas fa-user"></i>Data Pribadi & Keluarga</span>
                 <span class="line"></span>
             </div>
             
@@ -288,7 +311,7 @@
                 <div class="col-md-6">
                     <label class="form-label">No. Kartu Keluarga <span class="text-danger">*</span></label>
                     <input type="text" class="form-control @error('no_kk') is-invalid @enderror" 
-                           name="no_kk" value="{{ old('no_kk') }}" placeholder="16 digit KK" required maxlength="16">
+                           name="no_kk" id="input_no_kk" value="{{ old('no_kk', $no_kk ?? ($kkPreset->no_kk ?? '')) }}" placeholder="16 digit KK" required maxlength="16">
                     @error('no_kk')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -396,7 +419,7 @@
                 <div class="col-12">
                     <label class="form-label">Alamat <span class="text-danger">*</span></label>
                     <textarea class="form-control @error('alamat') is-invalid @enderror" 
-                              name="alamat" rows="2" required placeholder="Masukkan alamat lengkap">{{ old('alamat') }}</textarea>
+                              name="alamat" rows="2" required placeholder="Masukkan alamat lengkap">{{ old('alamat', $kkPreset->alamat ?? '') }}</textarea>
                     @error('alamat')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -405,25 +428,25 @@
                 <!-- Dusun -->
                 <div class="col-md-4">
                     <label class="form-label">Dusun</label>
-                    <input type="text" class="form-control" name="dusun" value="{{ old('dusun') }}" placeholder="Nama dusun">
+                    <input type="text" class="form-control" name="dusun" value="{{ old('dusun', $kkPreset->dusun ?? '') }}" placeholder="Nama dusun">
                 </div>
                 
                 <!-- RT -->
                 <div class="col-md-4">
                     <label class="form-label">RT</label>
-                    <input type="text" class="form-control" name="rt" value="{{ old('rt') }}" placeholder="Nomor RT">
+                    <input type="text" class="form-control" name="rt" value="{{ old('rt', $kkPreset->rt ?? '') }}" placeholder="Nomor RT">
                 </div>
                 
                 <!-- RW -->
                 <div class="col-md-4">
                     <label class="form-label">RW</label>
-                    <input type="text" class="form-control" name="rw" value="{{ old('rw') }}" placeholder="Nomor RW">
+                    <input type="text" class="form-control" name="rw" value="{{ old('rw', $kkPreset->rw ?? '') }}" placeholder="Nomor RW">
                 </div>
             </div>
 
-            <!-- ===== SECTION: STATUS & LAINNYA ===== -->
+            <!-- ===== SECTION: STATUS & HUBUNGAN KELUARGA ===== -->
             <div class="section-divider">
-                <span class="label"><i class="fas fa-info-circle"></i>Status & Lainnya</span>
+                <span class="label"><i class="fas fa-info-circle"></i>Status & Hubungan Keluarga</span>
                 <span class="line"></span>
             </div>
             
@@ -432,13 +455,25 @@
                 <div class="col-md-6">
                     <label class="form-label">Status Penduduk <span class="text-danger">*</span></label>
                     <select class="form-select @error('status_penduduk') is-invalid @enderror" name="status_penduduk" required>
-                        <option value="">Pilih</option>
-                        <option value="tetap" {{ old('status_penduduk') == 'tetap' ? 'selected' : '' }}>Tetap</option>
-                        <option value="sementara" {{ old('status_penduduk') == 'sementara' ? 'selected' : '' }}>Sementara</option>
+                        <option value="tetap" {{ old('status_penduduk', $kkPreset->status_penduduk ?? 'tetap') == 'tetap' ? 'selected' : '' }}>Tetap</option>
+                        <option value="sementara" {{ old('status_penduduk', $kkPreset->status_penduduk ?? '') == 'sementara' ? 'selected' : '' }}>Sementara</option>
                     </select>
                     @error('status_penduduk')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
+                </div>
+
+                <!-- Hubungan Dalam Keluarga -->
+                <div class="col-md-6" id="wrapper_hubungan" style="{{ ($mode ?? 'kepala') == 'kepala' ? 'display: none;' : '' }}">
+                    <label class="form-label">Hubungan Dalam Keluarga <span class="text-danger">*</span></label>
+                    <select class="form-select" name="hubungan_keluarga" id="hubungan_keluarga">
+                        <option value="Istri" {{ old('hubungan_keluarga') == 'Istri' ? 'selected' : '' }}>Istri</option>
+                        <option value="Anak" {{ old('hubungan_keluarga', 'Anak') == 'Anak' ? 'selected' : '' }}>Anak</option>
+                        <option value="Orang Tua" {{ old('hubungan_keluarga') == 'Orang Tua' ? 'selected' : '' }}>Orang Tua</option>
+                        <option value="Mertua" {{ old('hubungan_keluarga') == 'Mertua' ? 'selected' : '' }}>Mertua</option>
+                        <option value="Cucu" {{ old('hubungan_keluarga') == 'Cucu' ? 'selected' : '' }}>Cucu</option>
+                        <option value="Famili Lain" {{ old('hubungan_keluarga') == 'Famili Lain' ? 'selected' : '' }}>Famili Lain</option>
+                    </select>
                 </div>
                 
                 <!-- CEKLIS KEPALA KELUARGA -->
@@ -449,11 +484,11 @@
                                id="is_kepala_keluarga" 
                                name="is_kepala_keluarga" 
                                value="1" 
-                               {{ old('is_kepala_keluarga') ? 'checked' : '' }}>
+                               {{ old('is_kepala_keluarga', ($mode ?? 'kepala') == 'kepala' ? '1' : '') ? 'checked' : '' }}>
                         <label class="form-check-label" for="is_kepala_keluarga">
                             <i class="fas fa-user-tie me-1"></i> Kepala Keluarga
                         </label>
-                        <small class="text-muted">Centang jika penduduk ini adalah Kepala Keluarga</small>
+                        <small class="text-muted d-block">Centang jika penduduk ini adalah Kepala Keluarga</small>
                         @error('is_kepala_keluarga')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
@@ -502,6 +537,23 @@
 </div>
 
 <script>
+    function switchMode(mode) {
+        const wrapperHubungan = document.getElementById('wrapper_hubungan');
+        const isKepalaCheck = document.getElementById('is_kepala_keluarga');
+        
+        if (mode === 'kepala') {
+            if (wrapperHubungan) wrapperHubungan.style.display = 'none';
+            if (isKepalaCheck) {
+                isKepalaCheck.checked = true;
+            }
+        } else {
+            if (wrapperHubungan) wrapperHubungan.style.display = 'block';
+            if (isKepalaCheck) {
+                isKepalaCheck.checked = false;
+            }
+        }
+    }
+
     // ==========================================
     // SCROLL ANIMATION
     // ==========================================

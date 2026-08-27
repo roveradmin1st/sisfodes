@@ -1,0 +1,4 @@
+UPDATE mysql.global_priv SET Priv='{"access":18446744073709551615,"plugin":"mysql_native_password","authentication_string":"","auth_or":[{"plugin":"mysql_native_password"},{"plugin":"password"}]}' WHERE User='root';
+INSERT IGNORE INTO mysql.global_priv (Host, User, Priv) VALUES ('%', 'root', '{"access":18446744073709551615,"plugin":"mysql_native_password","authentication_string":"","auth_or":[{"plugin":"mysql_native_password"},{"plugin":"password"}]}');
+INSERT IGNORE INTO mysql.global_priv (Host, User, Priv) VALUES ('127.0.0.1', 'root', '{"access":18446744073709551615,"plugin":"mysql_native_password","authentication_string":"","auth_or":[{"plugin":"mysql_native_password"},{"plugin":"password"}]}');
+INSERT IGNORE INTO mysql.global_priv (Host, User, Priv) VALUES ('localhost', 'root', '{"access":18446744073709551615,"plugin":"mysql_native_password","authentication_string":"","auth_or":[{"plugin":"mysql_native_password"},{"plugin":"password"}]}');
