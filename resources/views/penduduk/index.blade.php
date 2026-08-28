@@ -246,6 +246,26 @@
     .table tbody tr:last-child td {
         border-bottom: none;
     }
+    /* ===== HORIZONTAL SCROLLBAR UNTUK TAMPILAN MOBILE ===== */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+    }
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #1a472a;
+        border-radius: 4px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #2d6a4f;
+    }
+
     .table tbody tr:nth-child(even) {
         background: #fafbfc;
     }
@@ -695,7 +715,7 @@
                 </tbody>
             </table>
             @else
-            <table class="table table-hover mb-0" id="pendudukTable">
+            <table class="table table-hover align-middle mb-0 text-nowrap" id="pendudukTable" style="min-width: 1050px;">
                 <thead>
                     <tr>
                         <th style="width: 50px;">No</th>

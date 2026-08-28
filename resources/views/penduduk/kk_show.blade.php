@@ -67,7 +67,7 @@
             </h5>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 text-nowrap" style="min-width: 950px;">
                 <thead class="table-light">
                     <tr>
                         <th style="width: 50px;">No</th>
