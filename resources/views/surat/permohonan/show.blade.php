@@ -437,7 +437,7 @@
                         </div>
                         <div class="col-md-3">
                             <input type="text" class="form-control" name="nomor_surat"
-                                placeholder="Nomor Surat (contoh: 470/001/DS/VIII/2026)"
+                                placeholder="Nomor Surat (contoh: 470/001/VIII/2026)"
                                 value="{{ old('nomor_surat', $permohonan->nomor_surat ?? \App\Http\Controllers\SuratController::generateNomorSurat($permohonan)) }}">
                         </div>
                         <div class="col-md-4">

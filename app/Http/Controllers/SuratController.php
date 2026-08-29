@@ -247,9 +247,9 @@ class SuratController extends Controller
 
         $nomorUrut = sprintf('%03d', $urutan);
 
-        // Format Resmi: [KODE] / [NOMOR_URUT] / DS / [BULAN_ROMAWI] / [TAHUN]
-        // Contoh: 470/001/DS/VIII/2026 (Angka Romawi adalah Bulan di depan Tahun)
-        return "{$kode}/{$nomorUrut}/DS/{$bulanRomawi}/{$tahun}";
+        // Format Resmi: [KODE] / [NOMOR_URUT] / [BULAN_ROMAWI] / [TAHUN]
+        // Contoh: 470/001/VIII/2026 (Angka Romawi adalah Bulan di depan Tahun)
+        return "{$kode}/{$nomorUrut}/{$bulanRomawi}/{$tahun}";
     }
 
     public static function hapusPendudukMeninggal($permohonan)
