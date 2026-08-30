@@ -366,6 +366,37 @@
             </div>
 
             <!-- ========================================== -->
+            <!-- FIELD KHUSUS SURAT KETERANGAN KEMATIAN     -->
+            <!-- ========================================== -->
+            <div class="row mb-3 align-items-start" id="wrapper-kematian" style="display: none;">
+                <div class="col-md-3">
+                    <label class="form-label text-danger fw-bold"><i class="fas fa-cross me-1"></i> Data Kematian <span class="text-danger">*</span></label>
+                </div>
+                <div class="col-md-9">
+                    <div class="p-3 border border-danger border-opacity-25 rounded-3 bg-danger bg-opacity-10">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Tanggal Meninggal Dunia <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control @error('tanggal_meninggal') is-invalid @enderror" 
+                                       name="tanggal_meninggal" id="input_tanggal_meninggal" value="{{ old('tanggal_meninggal') }}">
+                                @error('tanggal_meninggal')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Meninggal Di (Tempat) <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control @error('tempat_meninggal') is-invalid @enderror" 
+                                       name="tempat_meninggal" id="input_tempat_meninggal" value="{{ old('tempat_meninggal') }}" placeholder="Contoh: Rumah Duka Desa Sidomulyo / RS H. Adam Malik">
+                                @error('tempat_meninggal')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
             <!-- DATA DIRI (LABEL & TEXTBOX BERSAMPINGAN)  -->
             <!-- ========================================== -->
             
@@ -565,10 +596,33 @@ document.addEventListener('DOMContentLoaded', function() {
         container.innerHTML = html;
     }
 
+    function updateKematianFields() {
+        if (!selectJenis) return;
+        const selectedOption = selectJenis.options[selectJenis.selectedIndex];
+        const text = selectedOption ? selectedOption.text.toLowerCase() : '';
+        const deathWrapper = document.getElementById('wrapper-kematian');
+        const inputTanggal = document.getElementById('input_tanggal_meninggal');
+        const inputTempat = document.getElementById('input_tempat_meninggal');
+
+        if (text.includes('kematian')) {
+            if (deathWrapper) deathWrapper.style.display = 'flex';
+            if (inputTanggal) inputTanggal.required = true;
+            if (inputTempat) inputTempat.required = true;
+        } else {
+            if (deathWrapper) deathWrapper.style.display = 'none';
+            if (inputTanggal) inputTanggal.required = false;
+            if (inputTempat) inputTempat.required = false;
+        }
+    }
+
     if (selectJenis) {
-        selectJenis.addEventListener('change', updateRequirements);
+        selectJenis.addEventListener('change', function() {
+            updateRequirements();
+            updateKematianFields();
+        });
         if (selectJenis.value) {
             updateRequirements();
+            updateKematianFields();
         }
     }
 });

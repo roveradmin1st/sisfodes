@@ -18,6 +18,8 @@ class PermohonanSurat extends Model
         'id_jenis_surat',
         'tanggal_pengajuan',
         'keperluan',
+        'tanggal_meninggal',
+        'tempat_meninggal',
         'file_persyaratan',
         'file_surat_scan',
         'status_permohonan',
@@ -27,6 +29,7 @@ class PermohonanSurat extends Model
 
     protected $casts = [
         'tanggal_pengajuan' => 'date',
+        'tanggal_meninggal' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

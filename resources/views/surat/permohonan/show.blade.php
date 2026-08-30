@@ -345,6 +345,10 @@
                     <tr><th>Jenis Surat</th><td>{{ $permohonan->jenisSurat->nama_surat ?? '-' }}</td></tr>
                     <tr><th>Tanggal Pengajuan</th><td>{{ $permohonan->tanggal_pengajuan->format('d/m/Y H:i') }}</td></tr>
                     <tr><th>Keperluan</th><td>{{ $permohonan->keperluan }}</td></tr>
+                    @if($permohonan->tanggal_meninggal || $permohonan->tempat_meninggal || stripos($permohonan->jenisSurat->nama_surat ?? '', 'kematian') !== false)
+                    <tr><th>Tgl Meninggal</th><td><strong class="text-danger">{{ $permohonan->tanggal_meninggal ? $permohonan->tanggal_meninggal->format('d/m/Y') : '-' }}</strong></td></tr>
+                    <tr><th>Meninggal Di</th><td><strong class="text-danger">{{ $permohonan->tempat_meninggal ?? '-' }}</strong></td></tr>
+                    @endif
                     <tr>
                         <th>Status</th>
                         <td>
@@ -446,6 +450,16 @@
                         <div class="col-md-2">
                             <button type="submit" class="btn-action btn-update w-100">Update</button>
                         </div>
+                        @if(stripos($permohonan->jenisSurat->nama_surat ?? '', 'kematian') !== false)
+                            <div class="col-md-6 mt-2">
+                                <label class="form-label small fw-bold text-danger">Tgl Meninggal Dunia</label>
+                                <input type="date" class="form-control" name="tanggal_meninggal" value="{{ old('tanggal_meninggal', $permohonan->tanggal_meninggal ? $permohonan->tanggal_meninggal->format('Y-m-d') : '') }}">
+                            </div>
+                            <div class="col-md-6 mt-2">
+                                <label class="form-label small fw-bold text-danger">Meninggal Di (Tempat)</label>
+                                <input type="text" class="form-control" name="tempat_meninggal" value="{{ old('tempat_meninggal', $permohonan->tempat_meninggal) }}" placeholder="Contoh: Rumah Duka / RS H. Adam Malik">
+                            </div>
+                        @endif
                     </form>
                 @endif
                 

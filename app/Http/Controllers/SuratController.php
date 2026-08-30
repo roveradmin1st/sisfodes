@@ -147,6 +147,8 @@ class SuratController extends Controller
             'id_penduduk' => 'required|exists:penduduk,id_penduduk',
             'id_jenis_surat' => 'required|exists:jenis_surat,id_jenis_surat',
             'keperluan' => 'required|string',
+            'tanggal_meninggal' => 'nullable|date',
+            'tempat_meninggal' => 'nullable|string|max:255',
             'file_persyaratan_list' => 'nullable|array',
             'file_persyaratan_list.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'file_persyaratan' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
@@ -311,6 +313,8 @@ class SuratController extends Controller
             'status_permohonan' => $request->status,
             'catatan'           => $request->catatan,
             'nomor_surat'       => $nomorSurat,
+            'tanggal_meninggal' => $request->filled('tanggal_meninggal') ? $request->tanggal_meninggal : $permohonan->tanggal_meninggal,
+            'tempat_meninggal'  => $request->filled('tempat_meninggal') ? $request->tempat_meninggal : $permohonan->tempat_meninggal,
         ]);
 
         $pesanKematian = null;
