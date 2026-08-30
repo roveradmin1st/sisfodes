@@ -379,7 +379,41 @@ class SuratController extends Controller
             }
         }
 
-        $templatePath = $permohonan->jenisSurat->template_surat ?? null;
+        // Cek jika template diupload berformat .docx (Microsoft Word)
+        if ($templatePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($templatePath) && str_ends_with(strtolower($templatePath), '.docx')) {
+            $path = storage_path('app/public/' . $templatePath);
+            try {
+                $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($path);
+                $penduduk = $permohonan->penduduk;
+
+                $templateProcessor->setValue('nama', $penduduk->nama ?? '');
+                $templateProcessor->setValue('nik', ltrim($penduduk->nik ?? '', "'"));
+                $templateProcessor->setValue('no_kk', ltrim($penduduk->no_kk ?? '', "'"));
+                $templateProcessor->setValue('tempat_lahir', $penduduk->tempat_lahir ?? '');
+                $templateProcessor->setValue('tanggal_lahir', isset($penduduk->tanggal_lahir) ? \Carbon\Carbon::parse($penduduk->tanggal_lahir)->translatedFormat('d F Y') : '');
+                $templateProcessor->setValue('jenis_kelamin', ($penduduk->jenis_kelamin ?? 'L') == 'L' ? 'Laki-Laki' : 'Perempuan');
+                $templateProcessor->setValue('agama', $penduduk->agama ?? '');
+                $templateProcessor->setValue('pekerjaan', $penduduk->pekerjaan ?? '');
+                $templateProcessor->setValue('status_perkawinan', $penduduk->status_perkawinan ?? '');
+                $templateProcessor->setValue('alamat', $penduduk->alamat ?? '');
+                $templateProcessor->setValue('keperluan', $permohonan->keperluan ?? '');
+                $templateProcessor->setValue('tanggal_cetak', now()->translatedFormat('d F Y'));
+                $templateProcessor->setValue('nomor_surat', $permohonan->nomor_surat ?? self::generateNomorSurat($permohonan));
+
+                // Variabel Khusus Surat Keterangan Kematian
+                $tglMeninggal = $permohonan->tanggal_meninggal ? \Carbon\Carbon::parse($permohonan->tanggal_meninggal)->translatedFormat('d F Y') : ($permohonan->deleted_at ? \Carbon\Carbon::parse($permohonan->deleted_at)->translatedFormat('d F Y') : '-');
+                $templateProcessor->setValue('tanggal_meninggal', $tglMeninggal);
+                $templateProcessor->setValue('tempat_meninggal', $permohonan->tempat_meninggal ?? '-');
+
+                $tempFileName = 'Surat_' . str_replace(' ', '_', $permohonan->jenisSurat->nama_surat ?? 'Keterangan') . '_' . ($penduduk->nik ?? $permohonan->id_permohonan) . '.docx';
+                $tempPath = storage_path('app/public/temp_' . time() . '_' . $tempFileName);
+                $templateProcessor->saveAs($tempPath);
+
+                return response()->download($tempPath, $tempFileName)->deleteFileAfterSend(true);
+            } catch (\Exception $e) {
+                // Fallback ke DomPDF Blade View jika error
+            }
+        }
 
         // Cek jika template diupload berformat PDF
         if ($templatePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($templatePath) && str_ends_with(strtolower($templatePath), '.pdf')) {

@@ -319,7 +319,7 @@
                     <div class="alert alert-info py-2 mb-2" style="font-size: 0.85rem;">
                         <strong><i class="fas fa-info-circle"></i> Cara Pakai Template Otomatis:</strong><br>
                         Buat surat di Microsoft Word (.docx), lalu ketik kode variabel berikut di posisi data yang Anda inginkan:<br>
-                        <code>${nama}</code>, <code>${nik}</code>, <code>${no_kk}</code>, <code>${tempat_lahir}</code>, <code>${tanggal_lahir}</code>, <code>${jenis_kelamin}</code>, <code>${agama}</code>, <code>${pekerjaan}</code>, <code>${status_perkawinan}</code>, <code>${alamat}</code>, <code>${keperluan}</code>, <code>${tanggal_cetak}</code>.
+                        <code>${nama}</code>, <code>${nik}</code>, <code>${no_kk}</code>, <code>${tempat_lahir}</code>, <code>${tanggal_lahir}</code>, <code>${jenis_kelamin}</code>, <code>${agama}</code>, <code>${pekerjaan}</code>, <code>${status_perkawinan}</code>, <code>${alamat}</code>, <code>${keperluan}</code>, <code>${tanggal_cetak}</code>, <code>${nomor_surat}</code>, serta variabel khusus kematian: <code>${tanggal_meninggal}</code> dan <code>${tempat_meninggal}</code>.
                         <br>Sistem akan otomatis mengganti kode tersebut dengan data asli warga saat dicetak.
                     </div>
                     <div class="upload-box">
